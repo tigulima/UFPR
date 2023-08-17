@@ -1,0 +1,64 @@
+html {
+    font-family: "Lucida Console", "Courier New", monospace;
+
+    background-color: #1c1c1f;
+    color: whitesmoke;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+section {
+    margin: 35px 25px 35px 25px;
+    display: grid;
+    gap: 10px;
+}
+
+footer {
+    position: fixed;
+    
+    width: 100%;
+    height: 30px;
+
+    background-color: #17171c;
+    padding: 10px;
+
+    bottom: 0;
+}
+
+a {
+    color: burlywood;
+    text-decoration: none;
+}
+
+li {
+    margin-left: 40px;
+}
+
+#banner {
+    filter: brightness(50%);
+    height: 150px;
+    width: 100%;
+    object-fit: cover;
+}
+
+#banner_title {
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 25px;
+
+    width: 100%;
+
+    color: aliceblue;
+    position: absolute;
+
+    z-index: 1000;
+}
+
+.center_text {
+    text-align: center;
+}
