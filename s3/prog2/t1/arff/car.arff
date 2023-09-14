@@ -1,0 +1,11 @@
+@attribute CustomerID numeric
+@attribute Dealership numeric
+@attribute Showroom numeric
+@attribute ComputerSearch numeric
+@attribute M5 numeric
+@attribute 3Series numeric
+@attribute Z4 numeric
+@attribute Financing numeric
+@attribute Purchase numeric
+
+@data

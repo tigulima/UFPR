@@ -15,7 +15,7 @@ void aloca_atributos(atributo *infos, int tam){
     if (!(infos = malloc(sizeof(atributo) * tam))) {
         fprintf(stderr, "Erro ao alocar memória");
         exit(5);
-    }
+   	}
 }
 
 void exibe_atributos(atributo *infos, int tamanho){
@@ -40,7 +40,7 @@ int conta_atributos(FILE *arff){
     int tam = 0;
 
     while(fgets(linha, sizeof(linha), arff) != NULL) {
-        linha[strcspn(linha, "\n")] = "\0";
+        linha[strcspn(linha, "\n")] = '\0';
 
         if (strncmp(linha, "@attribute", 10) == 0)
             tam++;
@@ -49,21 +49,21 @@ int conta_atributos(FILE *arff){
     return tam;
 }
 
-atributo* processa_atributos(FILE *arff){
+void processa_atributos(atributo *atr, FILE *arff){
     char linha[STR_TAM_MAX];
     int dadoLido = 0;
     int i = 0;
 
     aloca_atributos(atr, conta_atributos(arff));
-    rewind(arff);
+	rewind(arff);
 
     while(fgets(linha, sizeof(linha), arff) != NULL) {
-        linha[strcspn(linha, "\n")] = "\0";
+        linha[strcspn(linha, "\n")] = '\0';
 
         if (strncmp(linha, "@attribute", 10) == 0) {
             char *token;
             token = strtok(linha, " ");
-                // Reads @atributo
+				// Reads @atributo
                 token = strtok(NULL, " ");
 
                 // Process Rotulo
@@ -71,7 +71,7 @@ atributo* processa_atributos(FILE *arff){
 
                 token = strtok(NULL, " ");
 
-               // Process Tipo
+				// Process Tipo
                 if(token != "numeric" && token != "string") {
                     atr[i].tipo = strdup("categoric");
                     atr[i].categorias = strdup(token);
@@ -90,7 +90,7 @@ atributo* processa_atributos(FILE *arff){
 }
 
 int main(int argc, char **argv){
-    int opt;
+	int opt;
     char exibicao = 0;
     char *entrada = 0;
 
@@ -122,7 +122,7 @@ int main(int argc, char **argv){
         exit(3);
     }
 
-    processa_atributos(arff);
+    processa_atributos(atr, arff);
     int tam = conta_atributos(arff);
 
     if (exibicao)

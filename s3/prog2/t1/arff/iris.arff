@@ -1,0 +1,7 @@
+@attribute sepal-length numeric
+@attribute sepal-width numeric
+@attribute petal-length numeric
+@attribute petal-width numeric
+@attribute class {Iris-setosa,Iris-versicolor,Iris-virginica}
+
+@data
