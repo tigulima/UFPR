@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #define STR_TAM_MAX 1024
 
@@ -11,25 +12,38 @@ typedef struct {
     char *categorias;
 } atributo;
 
-void aloca_atributos(atributo *infos, int tam){
-    if (!(infos = malloc(sizeof(atributo) * tam))) {
+atributo *aloca_atributos(int tam){
+    atributo *arff;
+
+    if (!(arff = malloc(sizeof(atributo) * tam))) {
         fprintf(stderr, "Erro ao alocar memória");
         exit(5);
    	}
+
+    return arff;
 }
 
-void exibe_atributos(atributo *infos, int tamanho){
-    if (infos == 0){
-        printf("O arquivo ARFF fornecido � inv�lido!\n");
+void libera_atributos(atributo *info, int tamanho){
+    for(int i = 0; i < tamanho; i++){
+        free(info[i].rotulo);
+        free(info[i].tipo);
+        free(info[i].categorias);
+    }
+    free(info);
+};
+
+void exibe_atributos(atributo *info, int tamanho){
+    if (info == 0){
+        printf("O arquivo ARFF fornecido é inválido!\n");
         exit(0);
     }
 
     printf("==== ATRIBUTOS DO ARQUIVO ====\n");
     for(int i = 0; i < tamanho; i++){
         printf("-> Atributo #%d\n", i+1);
-        printf("R�tulo: %s\n", infos[i].rotulo);
-        printf("Tipo: %s\n", infos[i].tipo);
-        if (infos[i].categorias) printf("Categorias: %s\n", infos[i].categorias);
+        printf("Rótulo: %s\n", info[i].rotulo);
+        printf("Tipo: %s\n", info[i].tipo);
+        if (info[i].categorias) printf("Categorias: %s\n", info[i].categorias);
         if (i < tamanho-1) printf("------------------------------\n");
     }
     printf("===============================\n");
@@ -46,55 +60,58 @@ int conta_atributos(FILE *arff){
             tam++;
     }
 
+    rewind(arff);
+
     return tam;
 }
 
-void processa_atributos(atributo *atr, FILE *arff){
+atributo *processa_atributos(FILE *arff){
     char linha[STR_TAM_MAX];
     int dadoLido = 0;
-    int i = 0;
 
-    aloca_atributos(atr, conta_atributos(arff));
-	rewind(arff);
+    atributo *atr = aloca_atributos(conta_atributos(arff));
 
-    while(fgets(linha, sizeof(linha), arff) != NULL) {
+    for(int i = 0; fgets(linha, sizeof(linha), arff) != NULL; i++) {
         linha[strcspn(linha, "\n")] = '\0';
 
         if (strncmp(linha, "@attribute", 10) == 0) {
+
             char *token;
             token = strtok(linha, " ");
-				// Reads @atributo
-                token = strtok(NULL, " ");
 
-                // Process Rotulo
-                atr[i].rotulo = strdup(token);
+            // Reads @atributo
+            token = strtok(NULL, " ");
 
-                token = strtok(NULL, " ");
+            // Process Rotulo
+            atr[i].rotulo = strdup(token);
 
-				// Process Tipo
-                if(token != "numeric" && token != "string") {
-                    atr[i].tipo = strdup("categoric");
-                    atr[i].categorias = strdup(token);
-                } else {
-                    atr[i].tipo = strdup(token);
-                    atr[i].categorias = NULL;
-                }
+            token = strtok(NULL, " ");
+
+            // Process Tipo
+            if(strcmp(token, "numeric") && strcmp(token, "string")) {
+                atr[i].tipo = strdup("categoric");
+                atr[i].categorias = strdup(token);
+            } else {
+                atr[i].tipo = strdup(token);
+                atr[i].categorias = NULL;
+            }
 
         } else if (strncmp(linha, "@data", 5) == 0) {
             dadoLido = 1;
         } else {
             printf("Linha ignorada: %s\n", linha);
         }
-        i++;
     }
+
+    rewind(arff);
+
+    return atr;
 }
 
 int main(int argc, char **argv){
 	int opt;
     char exibicao = 0;
     char *entrada = 0;
-
-    atributo *atr;
 
     while ((opt = getopt(argc, argv, "pi:")) != -1) {
         switch (opt) {
@@ -110,7 +127,7 @@ int main(int argc, char **argv){
         }
     }
 
-    if ( ! entrada ) {
+    if (!entrada) {
         fprintf(stderr, "Forma de uso: ./arff -i <arq_in> [-p]\n");
         exit(2);
     }
@@ -122,17 +139,17 @@ int main(int argc, char **argv){
         exit(3);
     }
 
-    processa_atributos(atr, arff);
+    atributo *atr;
+
+    atr = processa_atributos(arff);
+
     int tam = conta_atributos(arff);
 
     if (exibicao)
         exibe_atributos(atr, tam);
 
     fclose(arff);
-
-    free(atr[tam].rotulo);
-    free(atr[tam].tipo);
-    free(atr[tam].categorias);
+    libera_atributos(atr, tam);
 
     return 0 ;
 }
