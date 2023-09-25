@@ -25,9 +25,8 @@ void separa_colunas(char *colunas[NUM_COLUNAS], char linha[STR_TAM_MAX])
     }
 }
 
-void gera_ocorrencias(FILE *arff, atributo *atributos, int quantidade, ocorrencia *ocorrencias, int *qt_ocorrencias, void (*calcula_ocorrencias)(ocorrencia *, int, char *))
+void processa_ocorrencias(FILE *arff, ocorrencia **ocorrencias, int *qt, void (*op)(ocorrencia **, int *, char *))
 {
-    char *colunas[NUM_COLUNAS];
     char linha[STR_TAM_MAX];
     int dadoLido = 0;
 
@@ -41,54 +40,60 @@ void gera_ocorrencias(FILE *arff, atributo *atributos, int quantidade, ocorrenci
         }
         else if (dadoLido)
         {
-            separa_colunas(colunas, linha);
-            calcula_ocorrencias(ocorrencias, qt_ocorrencias, colunas);
+            op(ocorrencias, qt, linha);
         }
     }
 
     rewind(arff);
 }
 
-void calcula_ataques(ocorrencia *ocorrencias, int *qt_ocorrencias, char *colunas)
+void calcula_ataques(ocorrencia **ocorrencias, int *qt_ataques, char *linha)
 {
+    char *colunas[NUM_COLUNAS];
+    separa_colunas(colunas, linha);
+
     if (strcmp(colunas[PKT_CLASS], "Normal"))
     {
         int existe = 0;
 
-        for (int j = 0; j < qt_ocorrencias; j++)
+        for (int i = 0; i < *qt_ataques && existe == 0; i++)
         {
-            if (!strcmp(ocorrencias[j].str, colunas[PKT_CLASS]))
+            if (!strcmp((*ocorrencias)[i].str, colunas[PKT_CLASS]))
             {
                 existe = 1;
-                ocorrencias[j].num++;
+                (*ocorrencias)[i].num++;
             }
         }
 
         if (!existe)
         {
-            ocorrencias = realloc(ocorrencias, sizeof(ocorrencia) * (*qt_ocorrencias + 1));
-            ocorrencias[*qt_ocorrencias].str = strdup(colunas[PKT_CLASS]);
-            ocorrencias[*qt_ocorrencias].num = 1;
-            *qt_ocorrencias++;
+            if (!(*ocorrencias = realloc(*ocorrencias, sizeof(ocorrencia) * (*qt_ataques + 1))))
+            {
+                printf("Erro ao realocar memoria!\n");
+                exit(1);
+            };
+
+            (*ocorrencias)[*qt_ataques].str = strdup(colunas[PKT_CLASS]);
+            (*ocorrencias)[*qt_ataques].num = 1;
+
+            (*qt_ataques)++;
         }
     }
 }
 
 void gera_ataques(FILE *arff, atributo *atributos, int quantidade)
 {
-    ocorrencia *ocorrencias = malloc(sizeof(ocorrencia));
-    int *qt_ocorrencias = 0;
+    ocorrencia **ocorrencias = malloc(sizeof(ocorrencia));
+    int qt_ocorrencias = 0;
 
-    gera_ocorrencias(arff, atributos, quantidade, ocorrencias, qt_ocorrencias, calcula_ataques);
-
-    printf("qt_ocorrencias: %d\n", *qt_ocorrencias);
+    processa_ocorrencias(arff, ocorrencias, &qt_ocorrencias, calcula_ataques);
 
     char text[1024 * 1024] = "";
 
-    for (int i = 0; i < *qt_ocorrencias; i++)
+    for (int i = 0; i < qt_ocorrencias; i++)
     {
         char *linha = malloc(sizeof(char) * 1024);
-        sprintf(linha, "%s:%.0f\n", ocorrencias[i].str, ocorrencias[i].num);
+        sprintf(linha, "%s;%.0f\n", (*ocorrencias)[i].str, (*ocorrencias)[i].num);
         strcat(text, linha);
     }
 
@@ -98,60 +103,54 @@ void gera_ataques(FILE *arff, atributo *atributos, int quantidade)
     rewind(arff);
 }
 
-void gera_entidades(FILE *arff, atributo *atributos, int quantidade)
+void calcula_entidades(ocorrencia **ocorrencias, int *qt_entidades, char *linha)
 {
     char *colunas[NUM_COLUNAS];
-    char linha[STR_TAM_MAX];
-    int dadoLido = 0;
+    separa_colunas(colunas, linha);
 
-    ocorrencia *entidades = malloc(sizeof(ocorrencia));
-    int qt_entidades = 0;
-
-    for (int i = 0; fgets(linha, sizeof(linha), arff) != NULL; i++)
+    if (strcmp(colunas[PKT_CLASS], "Normal"))
     {
-        linha[strcspn(linha, "\n")] = '\0';
+        int existe = 0;
 
-        if (strncmp(linha, "@data", 5) == 0)
+        for (int j = 0; j < qt_entidades; j++)
         {
-            dadoLido = 1;
-        }
-        else if (dadoLido)
-        {
-            separa_colunas(colunas, linha);
-
-            if (strcmp(colunas[PKT_CLASS], "Normal"))
+            if (!strcmp((*ocorrencias)[j].str, colunas[SRC_ADD]))
             {
-                int existe = 0;
-
-                for (int j = 0; j < qt_entidades; j++)
-                {
-                    if (!strcmp(entidades[j].str, colunas[SRC_ADD]))
-                    {
-                        existe = 1;
-                        entidades[j].num++;
-                    }
-                }
-
-                if (!existe)
-                {
-                    entidades = realloc(entidades, sizeof(ocorrencia) * (qt_entidades + 1));
-                    entidades[qt_entidades].str = strdup(colunas[SRC_ADD]);
-                    entidades[qt_entidades].num = 1;
-                    qt_entidades++;
-                }
+                existe = 1;
+                (*ocorrencias)[j].num++;
             }
         }
+
+        if (!existe)
+        {
+            if (!(*ocorrencias = realloc(*ocorrencias, sizeof(ocorrencia) * (*qt_entidades + 1))))
+            {
+                printf("Erro ao realocar memoria!\n");
+                exit(1);
+            };
+            (*ocorrencias)[*qt_entidades].str = strdup(colunas[SRC_ADD]);
+            (*ocorrencias)[*qt_entidades].num = 1;
+            (*qt_entidades)++;
+        }
     }
+}
+
+void gera_entidades(FILE *arff, atributo *atributos, int quantidade)
+{
+    ocorrencia **ocorrencias = malloc(sizeof(ocorrencia));
+    int qt_ocorrencias = 0;
+
+    processa_ocorrencias(arff, ocorrencias, &qt_ocorrencias, calcula_entidades);
 
     char text[1024 * 1024] = "";
 
-    for (int i = 0; i < qt_entidades; i++)
+    for (int i = 0; i < qt_ocorrencias; i++)
     {
         char *linha = malloc(sizeof(char) * 1024);
-        if (entidades[i].num <= 5)
-            sprintf(linha, "%s;potencialmente_maliciosa\n", entidades[i].str);
-        else if (entidades[i].num > 5)
-            sprintf(linha, "%s;maliciosa\n", entidades[i].str);
+        if ((*ocorrencias)[i].num <= 5)
+            sprintf(linha, "%s;potencialmente_maliciosa\n", (*ocorrencias)[i].str);
+        else if ((*ocorrencias)[i].num > 5)
+            sprintf(linha, "%s;maliciosa\n", (*ocorrencias)[i].str);
         strcat(text, linha);
     }
 
