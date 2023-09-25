@@ -25,14 +25,11 @@ void separa_colunas(char *colunas[NUM_COLUNAS], char linha[STR_TAM_MAX])
     }
 }
 
-void gera_ataques(FILE *arff, atributo *atributos, int quantidade)
+void gera_ocorrencias(FILE *arff, atributo *atributos, int quantidade, ocorrencia *ocorrencias, int *qt_ocorrencias, void (*calcula_ocorrencias)(ocorrencia *, int, char *))
 {
     char *colunas[NUM_COLUNAS];
     char linha[STR_TAM_MAX];
     int dadoLido = 0;
-
-    ocorrencia *ataques = malloc(sizeof(ocorrencia));
-    int qt_ataques = 0;
 
     for (int i = 0; fgets(linha, sizeof(linha), arff) != NULL; i++)
     {
@@ -45,37 +42,53 @@ void gera_ataques(FILE *arff, atributo *atributos, int quantidade)
         else if (dadoLido)
         {
             separa_colunas(colunas, linha);
-
-            if (strcmp(colunas[PKT_CLASS], "Normal"))
-            {
-                int existe = 0;
-
-                for (int j = 0; j < qt_ataques; j++)
-                {
-                    if (!strcmp(ataques[j].str, colunas[PKT_CLASS]))
-                    {
-                        existe = 1;
-                        ataques[j].num++;
-                    }
-                }
-
-                if (!existe)
-                {
-                    ataques = realloc(ataques, sizeof(ocorrencia) * (qt_ataques + 1));
-                    ataques[qt_ataques].str = strdup(colunas[PKT_CLASS]);
-                    ataques[qt_ataques].num = 1;
-                    qt_ataques++;
-                }
-            }
+            calcula_ocorrencias(ocorrencias, qt_ocorrencias, colunas);
         }
     }
 
+    rewind(arff);
+}
+
+void calcula_ataques(ocorrencia *ocorrencias, int *qt_ocorrencias, char *colunas)
+{
+    if (strcmp(colunas[PKT_CLASS], "Normal"))
+    {
+        int existe = 0;
+
+        for (int j = 0; j < qt_ocorrencias; j++)
+        {
+            if (!strcmp(ocorrencias[j].str, colunas[PKT_CLASS]))
+            {
+                existe = 1;
+                ocorrencias[j].num++;
+            }
+        }
+
+        if (!existe)
+        {
+            ocorrencias = realloc(ocorrencias, sizeof(ocorrencia) * (*qt_ocorrencias + 1));
+            ocorrencias[*qt_ocorrencias].str = strdup(colunas[PKT_CLASS]);
+            ocorrencias[*qt_ocorrencias].num = 1;
+            *qt_ocorrencias++;
+        }
+    }
+}
+
+void gera_ataques(FILE *arff, atributo *atributos, int quantidade)
+{
+    ocorrencia *ocorrencias = malloc(sizeof(ocorrencia));
+    int *qt_ocorrencias = 0;
+
+    gera_ocorrencias(arff, atributos, quantidade, ocorrencias, qt_ocorrencias, calcula_ataques);
+
+    printf("qt_ocorrencias: %d\n", *qt_ocorrencias);
+
     char text[1024 * 1024] = "";
 
-    for (int i = 0; i < qt_ataques; i++)
+    for (int i = 0; i < *qt_ocorrencias; i++)
     {
         char *linha = malloc(sizeof(char) * 1024);
-        sprintf(linha, "%s:%.0f\n", ataques[i].str, ataques[i].num);
+        sprintf(linha, "%s:%.0f\n", ocorrencias[i].str, ocorrencias[i].num);
         strcat(text, linha);
     }
 
