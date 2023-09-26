@@ -26,9 +26,9 @@ void libera_atributos(atributo *infos, int quantidade)
         free(infos[i].tipo);
         if (infos[i].categorias)
         {
-            for (int j = 0; infos[i].categorias[j] != NULL; j++)
-                free(infos[i].categorias[j]);
-            free(infos[i].categorias);
+            // for (int j = 0; infos[i].categorias[j] != NULL; j++)
+            //     free(infos[i].categorias[j]);
+            // free(infos[i].categorias);
         }
     }
     free(infos);
@@ -133,13 +133,12 @@ atributo *processa_atributos(FILE *arff, int quantidade)
 
     atributo *atr = aloca_atributos(conta_atributos(arff));
 
-    for (int i = 0; fgets(linha, sizeof(linha), arff) != NULL; i++)
+    for (int i = 0; fgets(linha, sizeof(linha), arff) != NULL && dadoLido == 0; i++)
     {
         linha[strcspn(linha, "\n")] = '\0';
 
         if (strncmp(linha, "@attribute", 10) == 0)
         {
-
             char *token;
             token = strtok(linha, " ");
 
@@ -147,20 +146,30 @@ atributo *processa_atributos(FILE *arff, int quantidade)
             token = strtok(NULL, " ");
 
             // Processa Rotulo
-            atr[i].rotulo = strdup(token);
-
+            if(token)
+                atr[i].rotulo = strdup(token);
+            else
+                atr[i].rotulo = strdup("NULL");
             token = strtok(NULL, " ");
 
             // Processa Tipo
-            if (strcmp(token, "numeric") && strcmp(token, "string"))
+            if (token)
             {
-                atr[i].tipo = strdup("categoric");
-                processa_categorias(&atr[i], token);
+                if (strcmp(token, "numeric") && strcmp(token, "string"))
+                {
+                    atr[i].tipo = strdup("categoric");
+                    processa_categorias(&atr[i], token);
+                } 
+                else 
+                {
+                    atr[i].tipo = strdup(token);
+                    atr[i].categorias = NULL;
+                }
             }
             else
             {
-                atr[i].tipo = strdup(token);
-                atr[i].categorias = NULL;
+                printf("Erro linha %d: tipo de atributo inválido!\n", i + 1);
+                exit(0);
             }
         }
         else if (strncmp(linha, "@data", 5) == 0)
@@ -181,7 +190,6 @@ void valida_arff(FILE *arff, atributo *infos, int quantidade)
     int dadoLido = 0;
     int tam_linha = 0;
 
-    int int_test;
     char *eh_int;
 
     for (int i = 0; fgets(linha, sizeof(linha), arff) != NULL; i++)
@@ -201,7 +209,7 @@ void valida_arff(FILE *arff, atributo *infos, int quantidade)
             {
                 if (strcmp(infos[j].tipo, "numeric") == 0)
                 {
-                    int_test = strtod(token, &eh_int);
+                    strtod(token, &eh_int);
 
                     if (*eh_int != '\0')
                     {

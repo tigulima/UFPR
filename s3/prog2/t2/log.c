@@ -48,12 +48,12 @@ void separa_colunas(char *colunas[NUM_COLUNAS], char linha[STR_TAM_MAX])
 {
     char *token = strtok(linha, ",");
 
-    for (int i = 0; i < NUM_COLUNAS; i++)
+    for (int i = 0; i < NUM_COLUNAS && token != NULL; i++)
     {
+        printf("Token: %s\n", token);
         colunas[i] = strdup(token);
         token = strtok(NULL, ",");
     }
-    colunas[NUM_COLUNAS] = NULL;
 }
 
 // ATAQUES

@@ -9,7 +9,11 @@ test: main.c arff.c log.c
 	$(CC) main.c arff.c log.c -o main
 	./main -i arff/test.arff -p -v -a -b -c -d
 
-leak: main.c arff.c log.c
+gdb: main.c arff.c log.c
+	$(CC) -g main.c arff.c log.c -o main
+	gdb --args ./main -i arff/test.arff -p -v -a -b -c -d
+
+valgrind: main.c arff.c log.c
 	$(CC) main.c arff.c log.c -o main
 	valgrind --leak-check=full --track-origins=yes ./main -i arff/test.arff -p -v -a -b -c -d
 
