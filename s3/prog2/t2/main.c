@@ -104,6 +104,7 @@ int main(int argc, char **argv)
         gera_blacklist(arquivo, dados_atributos, qntd_atributos);
     }
 
+    free(entrada);
     fclose(arquivo);
     libera_atributos(dados_atributos, qntd_atributos);
 

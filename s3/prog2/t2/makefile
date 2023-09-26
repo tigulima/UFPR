@@ -9,6 +9,10 @@ test: main.c arff.c log.c
 	$(CC) main.c arff.c log.c -o main
 	./main -i arff/test.arff -p -v -a -b -c -d
 
+leak: main.c arff.c log.c
+	$(CC) main.c arff.c log.c -o main
+	valgrind --leak-check=full --track-origins=yes ./main -i arff/test.arff -p -v -a -b -c -d
+
 clear:
 	rm main
 	rm R_ATAQUES.txt

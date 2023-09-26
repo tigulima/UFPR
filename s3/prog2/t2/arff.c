@@ -3,15 +3,19 @@
 atributo *aloca_atributos(int quantidade)
 {
 
-    atributo *arff;
+    atributo *infos;
 
-    if (!(arff = malloc(sizeof(atributo) * quantidade)))
+    if (!(infos = malloc(sizeof(atributo) * quantidade)))
     {
         fprintf(stderr, "Erro ao alocar memória");
         exit(5);
     }
 
-    return arff;
+    infos->rotulo = NULL;
+    infos->tipo = NULL;
+    infos->categorias = NULL;
+
+    return infos;
 }
 
 void libera_atributos(atributo *infos, int quantidade)
@@ -20,7 +24,12 @@ void libera_atributos(atributo *infos, int quantidade)
     {
         free(infos[i].rotulo);
         free(infos[i].tipo);
-        free(infos[i].categorias);
+        if (infos[i].categorias)
+        {
+            for (int j = 0; infos[i].categorias[j] != NULL; j++)
+                free(infos[i].categorias[j]);
+            free(infos[i].categorias);
+        }
     }
     free(infos);
 };
@@ -92,7 +101,7 @@ void tira_chaves(char *str)
     str[j] = '\0';
 }
 
-void processa_categorias(atributo *elemento, char *categorias)
+void processa_categorias(atributo *infos, char *categorias)
 {
     // Recbe uma string com as categorias e atualiza o elemento com um vetor de strings (modificar a struct)
     char *token;
@@ -101,19 +110,19 @@ void processa_categorias(atributo *elemento, char *categorias)
 
     while (token != NULL)
     {
-        if (!(elemento->categorias = realloc(elemento->categorias, sizeof(char *) * (i + 1))))
+        if (!(infos->categorias = realloc(infos->categorias, sizeof(char *) * (i + 1))))
         {
             fprintf(stderr, "Erro ao alocar memória");
             exit(5);
         }
 
         tira_chaves(token);
-        elemento->categorias[i] = strdup(token);
+        infos->categorias[i] = strdup(token);
         token = strtok(NULL, ",");
         i++;
     }
 
-    elemento->categorias[i] = NULL;
+    infos->categorias[i] = NULL;
 }
 
 atributo *processa_atributos(FILE *arff, int quantidade)
@@ -163,7 +172,7 @@ atributo *processa_atributos(FILE *arff, int quantidade)
     return atr;
 }
 
-void valida_arff(FILE *arff, atributo *atributos, int quantidade)
+void valida_arff(FILE *arff, atributo *infos, int quantidade)
 {
     // Recebe um arquivo arff com ponteiro de leitura antes do "@data"; passa por todas as linhas de dados e valida cada elementos de cada coluna em
     // rela��o ao vetor de atributos tamb�m fornecido como argumento.`
@@ -190,7 +199,7 @@ void valida_arff(FILE *arff, atributo *atributos, int quantidade)
 
             for (int j = 0; token != NULL; j++)
             {
-                if (strcmp(atributos[j].tipo, "numeric") == 0)
+                if (strcmp(infos[j].tipo, "numeric") == 0)
                 {
                     int_test = strtod(token, &eh_int);
 
