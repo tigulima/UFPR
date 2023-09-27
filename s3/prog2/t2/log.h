@@ -10,6 +10,7 @@
 #include "arff.h"
 
 #define STR_TAM_MAX 1024
+#define FILE_SIZE_LIMIT 1024 * 1024
 
 typedef struct
 {

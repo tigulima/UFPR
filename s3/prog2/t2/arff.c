@@ -2,7 +2,6 @@
 
 atributo *aloca_atributos(int quantidade)
 {
-
     atributo *infos;
 
     if (!(infos = malloc(sizeof(atributo) * quantidade)))
@@ -10,10 +9,6 @@ atributo *aloca_atributos(int quantidade)
         fprintf(stderr, "Erro ao alocar memória");
         exit(5);
     }
-
-    infos->rotulo = NULL;
-    infos->tipo = NULL;
-    infos->categorias = NULL;
 
     return infos;
 }
@@ -69,24 +64,25 @@ int conta_atributos(FILE *arff)
     char linha[STR_TAM_MAX];
     int tam = 0;
 
+    // Incrementamos tam para cada linha que tenha @attribute
     while (fgets(linha, sizeof(linha), arff) != NULL)
     {
         linha[strcspn(linha, "\n")] = '\0';
 
         if (!strncmp(linha, "@attribute", 10))
             tam++;
-
-        if (!strncmp(linha, "@data", 5))
+        // Para o loop se achar @data
+        else if (!strncmp(linha, "@data", 5))
             break;
     }
 
     rewind(arff);
-
     return tam;
 }
 
 void tira_chaves(char *str)
 {
+    // Retira as chaves de uma string
     int j = 0;
 
     for (int i = 0; i < strlen(str); i++)
@@ -108,6 +104,7 @@ void processa_categorias(atributo *infos, char *categorias)
     token = strtok(categorias, ",");
     int i = 0;
 
+    // Inicializa o vetor de categorias
     if (!(infos->categorias = malloc(sizeof(char *) * (i + 1))))
     {
         fprintf(stderr, "Erro ao alocar memória");
@@ -121,6 +118,7 @@ void processa_categorias(atributo *infos, char *categorias)
 
     while (token != NULL)
     {
+        // Aloca mais um espaço no vetor de categorias para a categoria nova
         if (!(infos->categorias = realloc(infos->categorias, sizeof(char *) * (i + 1))))
         {
             fprintf(stderr, "Erro ao alocar memória");
@@ -133,6 +131,8 @@ void processa_categorias(atributo *infos, char *categorias)
         i++;
     }
 
+    // Aloca mais um espaço no vetor de categorias para o NULL
+    // Fazemos isso para facilitar a iteração no futuro
     if (!(infos->categorias = realloc(infos->categorias, sizeof(char *) * (i + 1))))
     {
         fprintf(stderr, "Erro ao alocar memória");
@@ -145,12 +145,14 @@ void processa_categorias(atributo *infos, char *categorias)
 atributo *processa_atributos(FILE *arff, int quantidade)
 {
     // Fun��o do A1 (com modifica��es para o atributo de categorias)
+
     char linha[STR_TAM_MAX];
     int dadoLido = 0;
 
     atributo *atr = aloca_atributos(conta_atributos(arff));
 
-    for (int i = 0; fgets(linha, sizeof(linha), arff) != NULL && dadoLido == 0; i++)
+    fgets(linha, sizeof(linha), arff);
+    for (int i = 0; i < quantidade && dadoLido == 0; i++)
     {
         linha[strcspn(linha, "\n")] = '\0';
 
@@ -166,7 +168,10 @@ atributo *processa_atributos(FILE *arff, int quantidade)
             if (token)
                 atr[i].rotulo = strdup(token);
             else
-                atr[i].rotulo = strdup("NULL");
+            {
+                printf("Erro linha %d: \"%s\" rótulo de atributo inválido!\n", i + 1, token);
+                exit(0);
+            }
             token = strtok(NULL, " ");
 
             // Processa Tipo
@@ -174,37 +179,44 @@ atributo *processa_atributos(FILE *arff, int quantidade)
             {
                 if (strcmp(token, "numeric") && strcmp(token, "string"))
                 {
+                    // Se for categoric, copia o token para o tipo e processa as categorias
                     atr[i].tipo = strdup("categoric");
                     processa_categorias(&atr[i], token);
                 }
                 else
                 {
+                    // Se for numeric ou string, copia o token para o tipo
                     atr[i].tipo = strdup(token);
                     atr[i].categorias = NULL;
                 }
             }
             else
             {
-                printf("Erro linha %d: tipo de atributo inválido!\n", i + 1);
+                printf("Erro linha %d: \"%s\"tipo de atributo inválido!\n", i + 1, token);
                 exit(0);
             }
+            fgets(linha, sizeof(linha), arff);
         }
+        else if (!strncmp(linha, "@data", 5))
+            // Se for @data, sai do loop
+            dadoLido = 1;
         else if (!strcmp(linha, ""))
         {
-            // Ignora linha vazia
+            // Le proxima linha. Se @data, sai do loop
             fgets(linha, sizeof(linha), arff);
             if (!strncmp(linha, "@data", 5))
                 dadoLido = 1;
             else
             {
-                printf("Erro linha %d: linha vazia!\n", i + 1);
-                exit(0);
+                // Ignora linha vazia
+                printf("Atenção! linha %d: linha vazia!\n\n", i + 1);
+                i--;
             }
         }
         else
         {
             // Retorna erro caso n�o tenha lido @attribute e @data
-            printf("Erro linha %d: linha inválida!\n", i + 1);
+            printf("Erro linha %d: \"%s\" linha inválida!\n", i + 1, linha);
             exit(0);
         }
     }
@@ -226,14 +238,14 @@ void valida_arff(FILE *arff, atributo *infos, int qt_atributos)
 
     char *eh_int;
 
+    // Le linha por linha
     for (int i = 0; fgets(linha, sizeof(linha), arff) != NULL; i++)
     {
         linha[strcspn(linha, "\n")] = '\0';
 
+        // Ignora as linhas ate encontrar @data
         if (!strncmp(linha, "@data", 5))
-        {
             dadoLido = 1;
-        }
         else if (dadoLido && !strcmp(linha, ""))
         {
             printf("Erro linha %d: linha vazia!\n", i + 1);
@@ -246,13 +258,30 @@ void valida_arff(FILE *arff, atributo *infos, int qt_atributos)
 
             for (int j = 0; j < qt_atributos; j++)
             {
+                // Nao precisamos verificar se é string pois qualquer coisa pode ser string
                 if (!strcmp(infos[j].tipo, "numeric"))
                 {
+                    // Verifica se a string pode ser convertida para double
                     strtod(token, &eh_int);
-
                     if (*eh_int != '\0')
                     {
-                        printf("Erro linha %d: não é numérico!\n", i + 1);
+                        printf("Erro linha %d: \"%s\" não é numérico!\n", i + 1, token);
+                        return;
+                    }
+                }
+                else if (!strncmp(infos[j].tipo, "categoric", 9))
+                {
+                    // Verifica se a string está entre as categorias
+                    int k = 0;
+                    while (infos[j].categorias[k] != NULL)
+                    {
+                        if (!strcmp(infos[j].categorias[k], token))
+                            break;
+                        k++;
+                    }
+                    if (infos[j].categorias[k] == NULL)
+                    {
+                        printf("Erro linha %d: \"%s\" não é uma categoria válida!\n", i + 1, token);
                         return;
                     }
                 }
@@ -261,6 +290,7 @@ void valida_arff(FILE *arff, atributo *infos, int qt_atributos)
                 token = strtok(NULL, ",");
             }
 
+            // Verifica se a linha tem a quantidade correta de atributos
             if (tam_linha != qt_atributos || token != NULL)
             {
                 printf("Erro linha %d: quantidade de atributos inválida!\n", i + 1);
@@ -272,6 +302,5 @@ void valida_arff(FILE *arff, atributo *infos, int qt_atributos)
     }
 
     printf("Arquivo válido!\n");
-
     rewind(arff);
 }

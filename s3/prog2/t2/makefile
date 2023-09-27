@@ -18,8 +18,8 @@ valgrind: main.c arff.c log.c
 	valgrind --leak-check=full --track-origins=yes ./main -i arff/test.arff -p -v -a -b -c -d
 
 clear:
-	rm main
-	rm R_ATAQUES.txt
-	rm R_ENTIDADES.txt
-	rm R_TAMANHO.txt
-	rm BLACKLIST.bl
+	rm -f main
+	rm -f R_ATAQUES.txt
+	rm -f R_ENTIDADES.txt
+	rm -f R_TAMANHO.txt
+	rm -f BLACKLIST.bl
