@@ -50,7 +50,6 @@ void separa_colunas(char *colunas[NUM_COLUNAS], char linha[STR_TAM_MAX])
 
     for (int i = 0; i < NUM_COLUNAS && token != NULL; i++)
     {
-        printf("Token: %s\n", token);
         colunas[i] = strdup(token);
         token = strtok(NULL, ",");
     }
@@ -67,7 +66,20 @@ void calcula_ataques(ocorrencia **ocorrencias, int *qt_ataques, char *linha)
     {
         int existe = 0;
 
-        for (int i = 0; i < *qt_ataques && existe == 0; i++)
+        if (*qt_ataques == 0)
+        {
+            if (!(*ocorrencias = malloc(sizeof(ocorrencia))))
+            {
+                printf("Erro ao alocar memoria!\n");
+                exit(1);
+            }
+
+            (*ocorrencias)[*qt_ataques].str = strdup(colunas[PKT_CLASS]);
+            (*ocorrencias)[*qt_ataques].num = 1;
+            (*qt_ataques)++;
+        }
+
+        for (int i = 0; i < *qt_ataques; i++)
         {
             if (!strcmp((*ocorrencias)[i].str, colunas[PKT_CLASS]))
             {
@@ -86,7 +98,6 @@ void calcula_ataques(ocorrencia **ocorrencias, int *qt_ataques, char *linha)
 
             (*ocorrencias)[*qt_ataques].str = strdup(colunas[PKT_CLASS]);
             (*ocorrencias)[*qt_ataques].num = 1;
-
             (*qt_ataques)++;
         }
     }
@@ -97,6 +108,8 @@ void calcula_ataques(ocorrencia **ocorrencias, int *qt_ataques, char *linha)
 
 void gera_ataques(FILE *arff, atributo *atributos, int quantidade)
 {
+    printf("\n-> Gerando relatorio de ataques... ");
+
     ocorrencia **ocorrencias = malloc(sizeof(ocorrencia));
     if (!ocorrencias)
     {
@@ -129,13 +142,25 @@ void gera_ataques(FILE *arff, atributo *atributos, int quantidade)
 
 void calcula_entidades(ocorrencia **ocorrencias, int *qt_entidades, char *linha)
 {
-
     char *colunas[NUM_COLUNAS];
     separa_colunas(colunas, linha);
 
     if (strcmp(colunas[PKT_CLASS], "Normal"))
     {
         int existe = 0;
+
+        if (*qt_entidades == 0)
+        {
+            if (!(*ocorrencias = malloc(sizeof(ocorrencia))))
+            {
+                printf("Erro ao alocar memoria!\n");
+                exit(1);
+            }
+
+            (*ocorrencias)[*qt_entidades].str = strdup(colunas[SRC_ADD]);
+            (*ocorrencias)[*qt_entidades].num = 1;
+            (*qt_entidades)++;
+        }
 
         for (int j = 0; j < *qt_entidades; j++)
         {
@@ -165,7 +190,15 @@ void calcula_entidades(ocorrencia **ocorrencias, int *qt_entidades, char *linha)
 
 void gera_entidades(FILE *arff, atributo *atributos, int quantidade)
 {
+    printf("\n-> Gerando relatorio de entidades... ");
+
     ocorrencia **ocorrencias = malloc(sizeof(ocorrencia));
+    if (!ocorrencias)
+    {
+        printf("Erro ao alocar memoria!\n");
+        exit(1);
+    }
+
     int qt_ocorrencias = 0;
 
     processa_ocorrencias(arff, ocorrencias, &qt_ocorrencias, calcula_entidades);
@@ -201,6 +234,19 @@ void calcula_tamanho(ocorrencia **ocorrencias, int *qt_ataques, char *linha)
     {
         int existe = 0;
 
+        if (*qt_ataques == 0)
+        {
+            if (!(*ocorrencias = malloc(sizeof(ocorrencia))))
+            {
+                printf("Erro ao alocar memoria!\n");
+                exit(1);
+            }
+
+            (*ocorrencias)[*qt_ataques].str = strdup(colunas[PKT_CLASS]);
+            (*ocorrencias)[*qt_ataques].num = atof(colunas[PKT_AVG_SIZE]);
+            (*qt_ataques)++;
+        }
+
         for (int i = 0; i < *qt_ataques && existe == 0; i++)
         {
             if (!strcmp((*ocorrencias)[i].str, colunas[PKT_CLASS]))
@@ -231,6 +277,8 @@ void calcula_tamanho(ocorrencia **ocorrencias, int *qt_ataques, char *linha)
 
 void gera_tamanho(FILE *arff, atributo *atributos, int quantidade)
 {
+    printf("\n-> Gerando relatorio de tamanho... ");
+
     ocorrencia **ocorrencias = malloc(sizeof(ocorrencia));
     int qt_ocorrencias = 0;
 
@@ -264,6 +312,19 @@ void calcula_blacklist(ocorrencia **ocorrencias, int *qt_ataques, char *linha)
     {
         int existe = 0;
 
+        if (*qt_ataques == 0)
+        {
+            if (!(*ocorrencias = malloc(sizeof(ocorrencia))))
+            {
+                printf("Erro ao alocar memoria!\n");
+                exit(1);
+            }
+
+            (*ocorrencias)[*qt_ataques].str = strdup(colunas[SRC_ADD]);
+            (*ocorrencias)[*qt_ataques].num = 1;
+            (*qt_ataques)++;
+        }
+
         for (int i = 0; i < *qt_ataques && existe == 0; i++)
         {
             if (!strcmp((*ocorrencias)[i].str, colunas[SRC_ADD]))
@@ -294,6 +355,8 @@ void calcula_blacklist(ocorrencia **ocorrencias, int *qt_ataques, char *linha)
 
 void gera_blacklist(FILE *arff, atributo *atributos, int quantidade)
 {
+    printf("\n-> Gerando relatorio de blacklist... ");
+
     ocorrencia **ocorrencias = malloc(sizeof(ocorrencia));
     int qt_ocorrencias = 0;
 
@@ -309,7 +372,7 @@ void gera_blacklist(FILE *arff, atributo *atributos, int quantidade)
         free(linha);
     }
 
-    printf("Arquivo BLACKLIST.bl criado!\n");
+    printf("Arquivo BLACKLIST.bl criado!\n\n");
     cria_arquivo("BLACKLIST.bl", text);
 
     libera_ocorrencia(ocorrencias, qt_ocorrencias);
