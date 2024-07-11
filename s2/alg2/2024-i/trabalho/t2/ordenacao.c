@@ -12,6 +12,9 @@ uint32_t getGRR() { return 20204397; }
 
 uint64_t mergeSort(int vetor[], size_t tam) {
     vetor[0] = 99;
+
+    
+
     return -1;
 }
 
