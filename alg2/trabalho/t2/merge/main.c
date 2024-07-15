@@ -18,6 +18,11 @@ int main() {
     vetor[0] = 1;
     vetor[1] = 10;
     vetor[2] = 12;
+    vetor[3] = 43;
+    vetor[4] = 21;
+    vetor[5] = 2;
+    vetor[6] = 87;
+    vetor[7] = 4;
 
     getNome(nome);
     printf("Trabalho de %s\n", nome);
