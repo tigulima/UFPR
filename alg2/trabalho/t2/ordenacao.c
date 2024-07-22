@@ -194,16 +194,81 @@ uint64_t heapSort(int vetor[], size_t tam) {
 }
 
 uint64_t mergeSortSR(int vetor[], size_t tam) {
-    vetor[0] = 99;
-    return -1;
+    // Merger sort iterativo
+
+    int *numComp = (int*)malloc(sizeof(int));
+
+    *numComp = 0;
+
+    for(int i = 1; i < tam; i *= 2) {
+        for(int j = 0; j < tam - 1; j += 2 * i) {
+            int a = j;
+            int m = j + i - 1;
+            int b = j + 2 * i - 1;
+
+            if(b >= tam)
+                b = tam - 1;
+
+            merge(vetor, a, m, b, numComp);
+        }
+    }
+
+    imprimeVetor(vetor, tam);
+
+    return *numComp;
 }
 
 uint64_t quickSortSR(int vetor[], size_t tam) {
-    vetor[0] = 99;
-    return -1;
+    // Quick sort iterativo
+
+    int *numComp = (int*)malloc(sizeof(int));
+
+    *numComp = 0;
+
+    int *pilha = (int*)malloc(tam * sizeof(int));
+
+    int topo = -1;
+
+    pilha[++topo] = 0;
+    pilha[++topo] = tam - 1;
+
+    while(topo >= 0) {
+        int b = pilha[topo--];
+        int a = pilha[topo--];
+
+        int p = quickSortRecursivo(vetor, a, b, numComp);
+
+        if(p - 1 > a) {
+            pilha[++topo] = a;
+            pilha[++topo] = p - 1;
+        }
+
+        if(p + 1 < b) {
+            pilha[++topo] = p + 1;
+            pilha[++topo] = b;
+        }
+    }
+
+    imprimeVetor(vetor, tam);
+
+    return *numComp;
 }
 
 uint64_t heapSortSR(int vetor[], size_t tam) {
-    vetor[0] = 99;
-    return -1;
+    // Heap sort iterativo
+
+    int *numComp = (int*)malloc(sizeof(int));
+
+    *numComp = 0;
+
+    buildMinHeap(vetor, tam, numComp);
+
+    for(int i = tam - 1; i > 0; i--) {
+        troca(vetor, 0, i);
+        maxheapfy(vetor, 0, i, numComp);
+    }
+
+    imprimeVetor(vetor, tam);
+
+    return *numComp;
 }
