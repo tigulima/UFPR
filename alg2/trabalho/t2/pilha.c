@@ -1,63 +1,55 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "pilha.h"
 
-#define MAX_SIZE 100
+pilha_t *inicializa(int tamanho) {
+    pilha_t *pilha;
 
-typedef struct {
-    int data[MAX_SIZE];
-    int top;
-} Stack;
+    if (!(pilha = (pilha_t *) malloc(sizeof(pilha_t)))) {
+        printf("Erro ao alocar memoria para a pilha\n");
+        return NULL;
+    }
 
-void initialize(Stack* stack) {
-    stack->top = -1;
+    if (!(pilha->valor = (int *) malloc (tamanho * sizeof(int)))) {
+        printf("Erro ao alocar memoria para a pilha-> valor\n");   
+        return NULL;
+    }
+
+    pilha->topo = 0;
+    pilha->tamanho = tamanho;
+
+    return pilha;
 }
 
-int isEmpty(Stack* stack) {
-    return stack->top == -1;
+unsigned char ehVazio(pilha_t *pilha) {
+    return pilha->topo == 0;
 }
 
-int isFull(Stack* stack) {
-    return stack->top == MAX_SIZE - 1;
+unsigned char ehCheio(pilha_t *pilha) {
+    return pilha->topo == pilha->tamanho - 1;
 }
 
-void push(Stack* stack, int value) {
-    if (isFull(stack)) {
-        printf("Stack overflow!\n");
+void push(pilha_t *pilha, int valor) {
+    if (ehCheio(pilha)) {
+        // printf("A pilha está cheia!\n");
         return;
     }
-    stack->data[++stack->top] = value;
+    pilha->valor[++pilha->topo] = valor;
+    return;
 }
 
-int pop(Stack* stack) {
-    if (isEmpty(stack)) {
-        printf("Stack underflow!\n");
+int pop(pilha_t *pilha) {
+    if (ehVazio(pilha)) {
+        // printf("A pilha está vazia!\n");
         return -1;
     }
-    return stack->data[stack->top--];
+    return pilha->valor[pilha->topo--];
 }
 
-int peek(Stack* stack) {
-    if (isEmpty(stack)) {
-        printf("Stack is empty!\n");
-        return -1;
-    }
-    return stack->data[stack->top];
-}
+void destroi (pilha_t *pilha) {
+    free(pilha->valor);
+    pilha->topo = 0;
+    pilha->tamanho = 0;
 
-int main() {
-    Stack stack;
-    initialize(&stack);
+    free(pilha);
 
-    push(&stack, 10);
-    push(&stack, 20);
-    push(&stack, 30);
-
-    printf("Top element: %d\n", peek(&stack));
-
-    printf("Popped element: %d\n", pop(&stack));
-    printf("Popped element: %d\n", pop(&stack));
-
-    printf("Top element: %d\n", peek(&stack));
-
-    return 0;
+    return;
 }
