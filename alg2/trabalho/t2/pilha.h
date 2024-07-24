@@ -2,7 +2,6 @@
 #define PILHA_H_
 
 #include <stdlib.h>
-#include <stdio.h>
 
 #define TAM_MAX 100
 

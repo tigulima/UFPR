@@ -24,6 +24,13 @@ void imprimeVetor(int v[], size_t tam) {
 
 // MERGE SORT
 
+void copiar(int v[], int w[], int a, int b) {
+    for(int i = 0; i <= b - a; i++)
+        v[a + i] = w[i];
+
+    return;
+}
+
 int* merge(int v[], int a, int m, int b, int *numComp) {
     // Merge Sort recursivo
     int i, j, k;
@@ -37,28 +44,24 @@ int* merge(int v[], int a, int m, int b, int *numComp) {
     j = m + 1;
     k = 0;
 
-    while(i <= m && j <= b) {
-        // Compara elementos
-        if(v[i] < v[j])
-            w[k++] = v[i++];
-        else
-            w[k++] = v[j++];
+    while (k <= b - a) {
+        if (j > b || (i <= m && v[i] <= v[j])) {
+            w[k] = v[i];
+            i++;
+        } else {
+            w[k] = v[j];
+            j++;
+        }
 
+        k++;
         *numComp += 1;
     }
 
-    while(i <= m)
-        w[k++] = v[i++];
-
-    while(j <= b)
-        w[k++] = v[j++];
-
-    for(i = a; i <= b; i++)
-        v[i] = w[i - a];
-
+    copiar(v, w, a, b);
+    
     free(w);
 
-    return v;
+    return v; 
 }
 
 int mergeSortRecursivo(int v[], int a, int b, int *numComp) {
@@ -199,7 +202,7 @@ int maxheapfySR(int v[], int i, int tam, int *numComp) {
     return *numComp;
 }
 
-int buildMinHeap(int v[], int tam, int *numComp) {
+int buildMaxHeap(int v[], int tam, int *numComp) {
     for(int i = tam / 2 - 1; i >= 0; i--)
         maxheapfy(v, i, tam, numComp);
 
@@ -207,7 +210,7 @@ int buildMinHeap(int v[], int tam, int *numComp) {
 }
 
 int heapSortRecursivo(int v[], int tam, int *numComp) {
-    buildMinHeap(v, tam, numComp);
+    buildMaxHeap(v, tam, numComp);
 
     for(int i = tam - 1; i > 0; i--) {
         troca(v, 0, i);
@@ -223,7 +226,7 @@ uint64_t mergeSort(int vetor[], size_t tam) {
     int numComp = 0;
 
     mergeSortRecursivo(vetor, 0, tam - 1, &numComp);
-    imprimeVetor(vetor, tam);
+    // imprimeVetor(vetor, tam);
 
     return numComp;
 }
@@ -232,7 +235,7 @@ uint64_t quickSort(int vetor[], size_t tam) {
     int numComp = 0;
 
     quickSortRecursivo(vetor, 0, tam - 1, &numComp);
-    imprimeVetor(vetor, tam);
+    // imprimeVetor(vetor, tam);
 
     return numComp;
 }
@@ -241,7 +244,7 @@ uint64_t heapSort(int vetor[], size_t tam) {
     int numComp = 0;
 
     heapSortRecursivo(vetor, tam, &numComp);
-    imprimeVetor(vetor, tam);
+    // imprimeVetor(vetor, tam);
 
     return numComp;
 }
@@ -264,7 +267,7 @@ uint64_t mergeSortSR(int vetor[], size_t tam) {
         }
     }
 
-    imprimeVetor(vetor, tam);
+    // imprimeVetor(vetor, tam);
 
     return numComp;
 }
@@ -276,7 +279,7 @@ uint64_t quickSortSR(int vetor[], size_t tam) {
 
     quickSortIterativo(vetor, 0, tam - 1, &numComp);
 
-    imprimeVetor(vetor, tam);
+    // imprimeVetor(vetor, tam);
 
     return numComp;
 }
@@ -286,14 +289,14 @@ uint64_t heapSortSR(int vetor[], size_t tam) {
 
     int numComp = 0;
 
-    buildMinHeap(vetor, tam, &numComp);
+    buildMaxHeap(vetor, tam, &numComp);
 
     for(int i = tam - 1; i > 0; i--) {
         troca(vetor, 0, i);
         maxheapfy(vetor, 0, i, &numComp);
     }
 
-    imprimeVetor(vetor, tam);
+    // imprimeVetor(vetor, tam);
 
     return numComp;
 }
