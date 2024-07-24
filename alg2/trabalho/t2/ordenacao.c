@@ -1,4 +1,5 @@
 #include "ordenacao.h"
+#include "pilha.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -87,36 +88,64 @@ void troca(int v[], int i, int j) {
     return;
 }
 
-int quickSortRecursivo(int v[], int a, int b, int *numComp) {
-    int i, j, pivo;
+int particionar(int v[], int a, int b, int *numComp) {
+    int pivo, m;
 
-    i = a;
-    j = b;
-    pivo = v[(a + b) / 2];
+    pivo = v[b];
+    m = a;
 
-    while(i <= j) {
-        while(v[i] < pivo)
-            i++;
-
-        while(v[j] > pivo)
-            j--;
-
-        if(i <= j) {
-            troca(v, i, j);
-            i++;
-            j--;
+    for (int i = a; i < b; i++) {
+        if(v[i] <= pivo) {
+            troca(v, i, m);
+            m++;
         }
 
         *numComp += 1;
     }
 
-    if(a < j)
-        quickSortRecursivo(v, a, j, numComp);
+    troca(v, m, b);
 
-    if(i < b)
-        quickSortRecursivo(v, i, b, numComp);
+    return m;
+}
+
+int quickSortRecursivo(int v[], int a, int b, int *numComp) {
+    int m;
+
+    if(a >= b)
+        return 0;
+
+    m = particionar(v, a, b, numComp);
+
+    quickSortRecursivo(v, a, m - 1, numComp);
+    quickSortRecursivo(v, m + 1, b, numComp);
 
     return *numComp;
+}
+
+void quickSortIterativo(int v[], int a, int b, int *numComp) {
+    int m;
+    pilha_t *pilha = NULL;
+
+    pilha = inicializa(b - a + 1);
+
+    push(pilha, a);
+    push(pilha, b);
+    while(!ehVazio(pilha)) {
+        b = pop(pilha);
+        a = pop(pilha);
+
+        if (a < b) {
+            m = particionar(v, a, b, numComp);
+            push(pilha, a);
+            push(pilha, m - 1);
+            push(pilha, m + 1);
+            push(pilha, b);
+        }
+    }
+
+    destroi(pilha);
+
+    return;
 }
 
 //// HEAP SORT ////
@@ -191,44 +220,36 @@ int heapSortRecursivo(int v[], int tam, int *numComp) {
 //// TEMPLATE ////
 
 uint64_t mergeSort(int vetor[], size_t tam) {
-    int *numComp = (int*)malloc(sizeof(int));
+    int numComp = 0;
 
-    *numComp = 0;
-
-    mergeSortRecursivo(vetor, 0, tam - 1, numComp);
+    mergeSortRecursivo(vetor, 0, tam - 1, &numComp);
     imprimeVetor(vetor, tam);
 
-    return *numComp;
+    return numComp;
 }
 
 uint64_t quickSort(int vetor[], size_t tam) {
-    int *numComp = (int*)malloc(sizeof(int));
+    int numComp = 0;
 
-    *numComp = 0;
-
-    quickSortRecursivo(vetor, 0, tam - 1, numComp);
+    quickSortRecursivo(vetor, 0, tam - 1, &numComp);
     imprimeVetor(vetor, tam);
 
-    return *numComp;
+    return numComp;
 }
 
 uint64_t heapSort(int vetor[], size_t tam) {
-    int *numComp = (int*)malloc(sizeof(int));
+    int numComp = 0;
 
-    *numComp = 0;
-
-    heapSortRecursivo(vetor, tam, numComp);
+    heapSortRecursivo(vetor, tam, &numComp);
     imprimeVetor(vetor, tam);
 
-    return *numComp;
+    return numComp;
 }
 
 uint64_t mergeSortSR(int vetor[], size_t tam) {
     // Merger sort iterativo
 
-    int *numComp = (int*)malloc(sizeof(int));
-
-    *numComp = 0;
+    int numComp = 0;
 
     for(int i = 1; i < tam; i *= 2) {
         for(int j = 0; j < tam - 1; j += 2 * i) {
@@ -239,68 +260,40 @@ uint64_t mergeSortSR(int vetor[], size_t tam) {
             if(b >= tam)
                 b = tam - 1;
 
-            merge(vetor, a, m, b, numComp);
+            merge(vetor, a, m, b, &numComp);
         }
     }
 
     imprimeVetor(vetor, tam);
 
-    return *numComp;
+    return numComp;
 }
 
 uint64_t quickSortSR(int vetor[], size_t tam) {
     // Quick sort iterativo
 
-    int *numComp = (int*)malloc(sizeof(int));
+    int numComp = 0;
 
-    *numComp = 0;
-
-    int *pilha = (int*)malloc(tam * sizeof(int));
-
-    int topo = -1;
-
-    pilha[++topo] = 0;
-    pilha[++topo] = tam - 1;
-
-    while(topo >= 0) {
-        int b = pilha[topo--];
-        int a = pilha[topo--];
-
-        int p = quickSortRecursivo(vetor, a, b, numComp);
-
-        if(p - 1 > a) {
-            pilha[++topo] = a;
-            pilha[++topo] = p - 1;
-        }
-
-        if(p + 1 < b) {
-            pilha[++topo] = p + 1;
-            pilha[++topo] = b;
-        }
-    }
+    quickSortIterativo(vetor, 0, tam - 1, &numComp);
 
     imprimeVetor(vetor, tam);
 
-    free(pilha);
-
-    return *numComp;
+    return numComp;
 }
 
 uint64_t heapSortSR(int vetor[], size_t tam) {
     // Heap sort iterativo
 
-    int *numComp = (int*)malloc(sizeof(int));
+    int numComp = 0;
 
-    *numComp = 0;
-
-    buildMinHeap(vetor, tam, numComp);
+    buildMinHeap(vetor, tam, &numComp);
 
     for(int i = tam - 1; i > 0; i--) {
         troca(vetor, 0, i);
-        maxheapfySR(vetor, 0, i, numComp);
+        maxheapfy(vetor, 0, i, &numComp);
     }
 
     imprimeVetor(vetor, tam);
 
-    return *numComp;
+    return numComp;
 }
