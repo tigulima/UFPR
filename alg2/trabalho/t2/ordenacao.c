@@ -12,7 +12,7 @@ void getNome(char nome[]) {
 
 uint32_t getGRR() { return 20204397; }
 
-//// CÓDIGO DE APOIO ////
+// CÓDIGO DE APOIO
 
 void imprimeVetor(int v[], size_t tam) {
     printf("Vetor: ");
@@ -21,19 +21,23 @@ void imprimeVetor(int v[], size_t tam) {
     printf("\n");
 }
 
-//// MERGE SORT ////
+// MERGE SORT
 
 int* merge(int v[], int a, int m, int b, int *numComp) {
+    // Merge Sort recursivo
     int i, j, k;
     int *w;
 
+    // Aloca vetor auxiliar
     w = (int*)malloc((b - a + 1) * sizeof(int));
 
+    // Inicializa variáveis
     i = a;
     j = m + 1;
     k = 0;
 
     while(i <= m && j <= b) {
+        // Compara elementos
         if(v[i] < v[j])
             w[k++] = v[i++];
         else
@@ -136,6 +140,32 @@ int maxheapfy(int v[], int i, int tam, int *numComp) {
     }
 
     *numComp += 1;
+
+    return *numComp;
+}
+
+int maxheapfySR(int v[], int i, int tam, int *numComp) {
+
+    while(i < tam) {
+        int esq = 2 * i + 1;
+        int dir = 2 * i + 2;
+        int maior = i;
+
+        if(esq < tam && v[esq] > v[maior])
+            maior = esq;
+
+        if(dir < tam && v[dir] > v[maior])
+            maior = dir;
+
+        if(maior != i) {
+            troca(v, i, maior);
+            i = maior;
+        } else {
+            break;
+        }
+
+        *numComp += 1;
+    }
 
     return *numComp;
 }
@@ -251,6 +281,8 @@ uint64_t quickSortSR(int vetor[], size_t tam) {
 
     imprimeVetor(vetor, tam);
 
+    free(pilha);
+
     return *numComp;
 }
 
@@ -265,7 +297,7 @@ uint64_t heapSortSR(int vetor[], size_t tam) {
 
     for(int i = tam - 1; i > 0; i--) {
         troca(vetor, 0, i);
-        maxheapfy(vetor, 0, i, numComp);
+        maxheapfySR(vetor, 0, i, numComp);
     }
 
     imprimeVetor(vetor, tam);
