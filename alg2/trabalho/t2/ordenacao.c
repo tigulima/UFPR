@@ -176,6 +176,33 @@ int maxheapfy(int v[], int i, int tam, int *numComp) {
     return *numComp;
 }
 
+int maxheapfyIterativo(int v[], int i, int tam, int *numComp) {
+    int esq, dir, maior;
+
+    while(i < tam) {
+        esq = 2 * i + 1;
+        dir = 2 * i + 2;
+        maior = i;
+
+        if(esq < tam && v[esq] > v[maior])
+            maior = esq;
+
+        if(dir < tam && v[dir] > v[maior])
+            maior = dir;
+
+        if(maior != i) {
+            troca(v, i, maior);
+            i = maior;
+        } else {
+            i = tam;
+        }
+
+        *numComp += 1;
+    }
+
+    return *numComp;
+}
+
 int maxheapfySR(int v[], int i, int tam, int *numComp) {
 
     while(i < tam) {
@@ -225,8 +252,10 @@ int heapSortRecursivo(int v[], int tam, int *numComp) {
 uint64_t mergeSort(int vetor[], size_t tam) {
     int numComp = 0;
 
+    imprimeVetor(vetor, tam);
+
     mergeSortRecursivo(vetor, 0, tam - 1, &numComp);
-    // imprimeVetor(vetor, tam);
+    imprimeVetor(vetor, tam);
 
     return numComp;
 }
