@@ -2,62 +2,56 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 struct loja* criar_loja (unsigned int numero_maquinas) {
+    srand(time(NULL));
     
-    struct loja *loja = malloc(sizeof(struct loja*));
+    struct loja *loja = malloc(sizeof(struct loja));
     
     if (loja == NULL) {
         printf("\nNao foi possivel alocar memoria para loja!\n");
         return NULL;
     }
     
-    loja->numero_maquinas = 0;
-    
-    struct maquina_pelucia *maq_anterior = NULL;
-    struct maquina_pelucia *primeira_maquina = malloc(sizeof(struct maquina_pelucia));
-    
-    if (primeira_maquina == NULL) {
-        printf("\nNao foi possivel alocar memoria para maquina!\n");
+    // Cria a sentinela
+    struct maquina_pelucia *sentinela = malloc(sizeof(struct maquina_pelucia));
+    if (sentinela == NULL) {
+        printf("\nNao foi possivel alocar memoria para sentinela!\n");
+        free(loja);
         return NULL;
     }
     
-    primeira_maquina->id = 1;
-    primeira_maquina->probabilidade = 0;
+    // Inicializa a sentinela (valores especiais para identificá-la)
+    sentinela->id = 0;  // ID 0 indica sentinela
+    sentinela->probabilidade = 0;
+    sentinela->proximo = sentinela;
+    sentinela->anterior = sentinela;
     
-    primeira_maquina->anterior = NULL;
-    primeira_maquina->proximo = NULL;
+    loja->sentinela = sentinela;
+    loja->numero_maquinas = 0;
     
-    maq_anterior = primeira_maquina;
-    
-    loja->numero_maquinas++;
-    loja->inicio = primeira_maquina;
-
-    maq_anterior = primeira_maquina;
-    
-    for(int i = 1; i < numero_maquinas; i++) {
+    // Cria as máquinas e as adiciona na lista
+    for(unsigned int i = 0; i < numero_maquinas; i++) {
         struct maquina_pelucia *maquina = malloc(sizeof(struct maquina_pelucia));
         
         if (!maquina) {
             printf("\nNao foi possivel alocar memoria para maquina!\n");
+            destruir_loja(loja);
             return NULL;
         }
         
-        maq_anterior->proximo = maquina;
+        maquina->id = i + 1;
+        maquina->probabilidade = rand() % 101;
         
-        maquina->id = i+1;
-        maquina->probabilidade = 0;
-        
-        maquina->anterior = maq_anterior;
-        maquina->proximo = NULL;
-        
-        maq_anterior = maquina;
+        // Insere a máquina após a sentinela (no início da lista)
+        maquina->proximo = sentinela->proximo;
+        maquina->anterior = sentinela;
+        sentinela->proximo->anterior = maquina;
+        sentinela->proximo = maquina;
         
         loja->numero_maquinas++;
     }
-    
-    maq_anterior->proximo = primeira_maquina;
-    primeira_maquina->anterior = maq_anterior;
 
     ordena_maquinas(loja);
 
@@ -65,89 +59,122 @@ struct loja* criar_loja (unsigned int numero_maquinas) {
 }
 
 void ordena_maquinas(struct loja *loja) {
-    struct maquina_pelucia *maq = loja->inicio;
-    struct maquina_pelucia *maq_aux = NULL;
-
+    if (loja->numero_maquinas <= 1) return;
     
-    for(int i = 0; i < loja->numero_maquinas; i++) {
+    // Selection sort na lista circular com sentinela
+    struct maquina_pelucia *atual = loja->sentinela->proximo;  // Primeira máquina real
+    
+    for (unsigned int i = 0; i < loja->numero_maquinas - 1; i++) {
+        struct maquina_pelucia *maior = atual;
+        struct maquina_pelucia *temp = atual->proximo;
         
-        for (int j = 0; j < i; j++) {
-            maq = maq->proximo;
-        }
-        
-        for(int j = i + 1; j < (loja->numero_maquinas - i); j++) {
-            printf("\n%i\n", maq->id);
-            if (maq->probabilidade >= maq->proximo->probabilidade) {
-                maq_aux = maq;
-            } else {
-                maq_aux = maq->proximo;
+        // Encontra a máquina com maior probabilidade
+        for (unsigned int j = i + 1; j < loja->numero_maquinas; j++) {
+            if (temp->probabilidade > maior->probabilidade) {
+                maior = temp;
             }
-            
-            maq = maq->proximo;
+            temp = temp->proximo;
         }
-        troca_maquinas(loja, maq_aux, i);
+        
+        // Troca os valores se necessário
+        if (maior != atual) {
+            unsigned int temp_id = atual->id;
+            unsigned int temp_prob = atual->probabilidade;
+            
+            atual->id = maior->id;
+            atual->probabilidade = maior->probabilidade;
+            
+            maior->id = temp_id;
+            maior->probabilidade = temp_prob;
+        }
+        
+        atual = atual->proximo;
     }
-    
-    return;
-}
-
-void troca_maquinas(struct loja *loja, struct maquina_pelucia *maq_maior, int posicao) {
-    struct maquina_pelucia *maq_troca = loja->inicio;
-    struct maquina_pelucia *maq_aux = NULL;
-
-    maq_aux = malloc(sizeof(struct maquina_pelucia));
-
-    if (maq_aux == NULL) {
-        printf("nNao foi possivel alocar memoria para maquina auxiliar");
-        return;
-    }
-    
-    for(int i = 0; i < posicao; i++) {
-        maq_troca = maq_troca->proximo;
-    }
-    
-    if (maq_troca->id == maq_maior->id) {
-        return;
-    }
-    
-    maq_aux->id = maq_troca->id;
-    // printf("\n\nChegou aqui\n\n");
-    maq_aux->probabilidade = maq_troca->probabilidade;
-    maq_aux->anterior = maq_troca->anterior;
-    maq_aux->proximo = maq_troca->proximo;
-    
-    maq_troca->id = maq_maior->id;
-    maq_troca->probabilidade = maq_maior->probabilidade;
-    maq_troca->anterior = maq_maior->anterior;
-    maq_troca->proximo = maq_maior->proximo;
-
-    maq_maior->id = maq_aux->id;
-    maq_maior->probabilidade = maq_aux->probabilidade;
-    maq_maior->anterior = maq_aux->anterior;
-    maq_maior->proximo = maq_aux->proximo;
-
-    free(maq_aux);
 }
 
 int jogar (struct loja *loja) {
+    // Verifica se ainda existem máquinas
+    if (loja->numero_maquinas == 0) {
+        return -1; // Não há máquinas disponíveis
+    }
     
+    // Escolhe uma máquina aleatoriamente
+    int maquina_escolhida = rand() % loja->numero_maquinas;
+    struct maquina_pelucia *maq = loja->sentinela->proximo;  // Primeira máquina real
+    
+    for (int i = 0; i < maquina_escolhida; i++) {
+        maq = maq->proximo;
+    }
+    
+    // Gera número aleatório para o jogador (0-100)
+    int jogada_jogador = rand() % 101;
+    
+    printf("Máquina %d (probabilidade %d%%) - Jogada: %d\n", 
+           maq->id, maq->probabilidade, jogada_jogador);
+    
+    // Se jogada do jogador < probabilidade da máquina, jogador ganha
+    if (jogada_jogador < maq->probabilidade) {
+        int id_ganhadora = maq->id;
+        
+        // Remove a máquina da lista circular
+        maq->anterior->proximo = maq->proximo;
+        maq->proximo->anterior = maq->anterior;
+        
+        free(maq);
+        loja->numero_maquinas--;
+        
+        return id_ganhadora;
+    }
+    
+    return 0; // Jogador perdeu
 }
 
 void encerrar_dia (struct loja *loja) {
+    printf("\n===== FIM DO DIA =====\n");
+    printf("Máquinas restantes na loja:\n");
     
+    if (loja->numero_maquinas == 0) {
+        printf("Nenhuma máquina restante - todas foram ganhas!\n");
+    } else {
+        escreve_maquinas(loja);
+    }
 }
 
 void destruir_loja (struct loja *loja) {
-
+    if (loja == NULL) return;
+    
+    // Libera todas as máquinas restantes
+    while (loja->numero_maquinas > 0) {
+        struct maquina_pelucia *maq = loja->sentinela->proximo;
+        
+        // Remove da lista circular
+        maq->anterior->proximo = maq->proximo;
+        maq->proximo->anterior = maq->anterior;
+        
+        free(maq);
+        loja->numero_maquinas--;
+    }
+    
+    // Libera a sentinela
+    free(loja->sentinela);
+    
+    // Libera a estrutura da loja
+    free(loja);
 }
 
 void escreve_maquinas (struct loja *loja) {
-    struct maquina_pelucia *maq = loja->inicio;
+    if (loja->numero_maquinas == 0) {
+        printf("\n\n------------\n");
+        printf("Nenhuma máquina disponível\n");
+        return;
+    }
+    
+    struct maquina_pelucia *maq = loja->sentinela->proximo;  // Primeira máquina real
 
     printf("\n\n------------\n");
     
     for(int i = 0; i < loja->numero_maquinas; i++) {
-        printf("%i - ", maq->id);
+        printf("%i - %i%%\n", maq->id, maq->probabilidade);
         maq = maq->proximo;
     }
 }
