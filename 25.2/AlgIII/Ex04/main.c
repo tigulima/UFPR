@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 struct nodo {
-    char chave;
+    int chave;
     struct nodo *pai;
     struct nodo *fd;
     struct nodo *fe;
