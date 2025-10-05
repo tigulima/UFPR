@@ -1,13 +1,12 @@
-================================================================================
-                          GBV - Gerenciador de Biblioteca Virtual
-================================================================================
 
-AUTORIA
+#GBV - Gerenciador de Biblioteca Virtual
+
+###AUTORIA
 -------
     GRR20204397 - Thiago Imai Lima
 
 
-ARQUIVOS
+###ARQUIVOS
 --------
     gbv.c       Implementação das funções principais do gerenciador
     gbv.h       Declarações de estruturas e funções
@@ -18,7 +17,7 @@ ARQUIVOS
     README      Este arquivo
 
 
-COMPILAÇÃO E USO
+###COMPILAÇÃO E USO
 ----------------
     Compilar:
         $ make
@@ -34,7 +33,7 @@ COMPILAÇÃO E USO
         -o <critério>   Ordena por: nome, data ou tamanho
 
 
-DIFICULDADES ENFRENTADAS
+###DIFICULDADES ENFRENTADAS
 ------------------------
     • Entender a estrutura [Superbloco, doc1, doc2, Area de Dados] do arquivo binário e como os componentes se relacionam.
 
@@ -45,7 +44,7 @@ DIFICULDADES ENFRENTADAS
     • Entender por que usar strncpy(novo_doc->name, docname, MAX_NAME) em vez de novo_doc->name = docname, devido à natureza de arrays vs ponteiros.
 
 
-MUDANÇAS FUTURAS
+###MUDANÇAS FUTURAS
 ----------------
 
     • Adicionar uma função BuscarDocumento para reutilizar no View e no Remove, evitando código duplicado.
