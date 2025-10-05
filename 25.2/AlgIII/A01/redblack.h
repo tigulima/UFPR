@@ -3,7 +3,10 @@
 
 struct nodo {
     int chave;
-    ???
+    unsigned char cor;
+    struct nodo *fe;
+    struct nodo *fd;
+    struct nodo *pai;
 };
 
 struct aluno{
@@ -28,5 +31,15 @@ struct nodo* buscar(struct nodo* raiz, int chave);
 void imprimirEmOrdem(struct nodo* nodo);
 
 void imprimirEmLargura(struct nodo* raiz);
+
+//funções complementares
+
+struct nodo* criarNodo(int chave);
+
+void redBlackInsertFixup(struct nodo* raiz);
+
+void rotacaoDireita(struct nodo* raiz);
+
+void rotacaoEsquerda(struct nodo* raiz);
 
 #endif//REDBLACK_H
