@@ -20,13 +20,18 @@ ARQUIVOS
 
 ARQUIVOS DE TESTE
 -----------------
-    testes/a.txt         ~58B   - Muito pequeno (1 linha)
-    testes/b.txt         ~235B  - Pequeno (3 linhas)
-    testes/c.txt         ~451B  - Médio (6 linhas)
-    testes/d.txt         ~827B  - Grande (12 linhas)
-    testes/e.txt         ~1.2KB - Muito grande (18 linhas)
-    testes/f.txt         ~1.8KB - Extra grande (27 linhas)
-    testes/grande.txt    ~2.4KB - Múltiplos blocos (para testar visualização)
+    Os arquivos estão propositalmente com tamanhos NÃO ordenados para
+    facilitar o teste da funcionalidade de ordenação por tamanho.
+
+    testes/a.txt         ~450B  - Médio (6 linhas)
+    testes/b.txt         ~1.2KB - Grande (18 linhas)
+    testes/c.txt         ~57B   - Muito pequeno (1 linha)
+    testes/d.txt         ~234B  - Pequeno (3 linhas)
+    testes/e.txt         ~826B  - Médio-grande (12 linhas)
+    testes/f.txt         ~1.8KB - Muito grande (27 linhas)
+    testes/grande.txt    ~2.4KB - Extra grande - múltiplos blocos
+
+    Ordem crescente de tamanho: c < d < a < e < b < f < grande
 
 
 COMPILAÇÃO E USO
@@ -46,10 +51,12 @@ COMPILAÇÃO E USO
 
     Exemplo de teste rápido:
         $ printf '\x00\x00\x00\x00\x10\x00\x00\x00\x00\x00\x00\x00' > test.gbv
-        $ ./gbv -a test.gbv testes/a.txt testes/b.txt testes/c.txt
-        $ ./gbv -l test.gbv
-        $ ./gbv -o test.gbv tamanho
-        $ ./gbv -l test.gbv
+        $ ./gbv -a test.gbv testes/a.txt testes/b.txt testes/c.txt testes/d.txt
+        $ ./gbv -l test.gbv                  # Lista em ordem de inserção
+        $ ./gbv -o test.gbv nome             # Ordena alfabeticamente
+        $ ./gbv -l test.gbv                  # Exibe: a, b, c, d
+        $ ./gbv -o test.gbv tamanho          # Ordena por tamanho
+        $ ./gbv -l test.gbv                  # Exibe: c(57B), d(234B), a(450B), b(1.2K)
 
 
 DIFICULDADES ENFRENTADAS
