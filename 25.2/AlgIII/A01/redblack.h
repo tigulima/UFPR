@@ -1,12 +1,23 @@
 #ifndef REDBLACK_H_
 #define REDBLACK_H_
 
+// O enum usa 8 bytes (4 bytes para cada nó) ao invés
+// de 1 byte que seria usado se fosse unsigned char
+// (ou char mesmo). Mas preferi alterar por conta de 
+// boas práticas. Na minha pesquisa, essa foi a
+// implementação mais recomendada, considerando a
+// segurança de funcionamento e leitura.
+typedef enum {
+    VERMELHO,
+    PRETO
+} Cor;
+
 struct nodo {
     int chave;
-    unsigned char cor;
-    struct nodo *fe;
-    struct nodo *fd;
+    Cor cor;
     struct nodo *pai;
+    struct nodo *esq;
+    struct nodo *dir;
 };
 
 struct aluno{
@@ -36,10 +47,6 @@ void imprimirEmLargura(struct nodo* raiz);
 
 struct nodo* criarNodo(int chave);
 
-void redBlackInsertFixup(struct nodo* raiz);
-
-void rotacaoDireita(struct nodo* raiz);
-
-void rotacaoEsquerda(struct nodo* raiz);
+void insertFixup(struct nodo* raiz);
 
 #endif//REDBLACK_H

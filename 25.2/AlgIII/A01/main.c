@@ -6,7 +6,7 @@
 int main(){
 	//ATENÇÃO, ESSE É APENAS UM EXEMPLO DE IMPLEMENTAÇÃO DO MAIN.
 	//MODIFIQUE DE ACORDO COM SUAS NECESSIDADES E DE ACORDO COM AS ESPECIFICAÇÕES.
-	struct nodo* raiz = ???;
+	struct nodo* raiz = NULL;
 	
 	imprimirDadosAluno();
 
