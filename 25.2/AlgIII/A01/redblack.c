@@ -4,16 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 
-struct fila{
-    struct fila_nodo* inicio;
-    struct fila_nodo* fim;
-};
-
-struct fila_nodo{
-    struct nodo* nodo;
-    struct fila_nodo* prox; 
-};
-
 // Criamos uma variável global nesse caso pois se fosse criado
 // dentro de uma funçao (como "criaSentinela"), seria necessário
 // passar como parâmtro para todas as funções desse código.
@@ -66,6 +56,14 @@ void imprimirDadosAluno(){
 
 //IMPLEMENTE AS DEMAIS FUNÇÕES AQUI
 
+int ehSentinela(struct nodo* nodo) {
+    return nodo == SENTINELA;
+}
+
+struct nodo* criarArvore() {
+    return SENTINELA;
+}
+
 //retorna SENTINELA se não foi possível inserir
 struct nodo* inserir(struct nodo** raiz, int chave) {
     struct nodo* novo_nodo = criarNodo(chave);
@@ -95,19 +93,85 @@ struct nodo* inserir(struct nodo** raiz, int chave) {
         pai_do_novo_nodo->dir = novo_nodo;
     }
 
-    inserirFixup(*raiz, novo_nodo);
+    inserirFixup(raiz, novo_nodo);
 
     return novo_nodo;
 }
 
+struct nodo* buscarSucessor(struct nodo* nodo) {
+    while (nodo->esq != SENTINELA) {
+        nodo = nodo->esq;
+    }
+    return nodo;
+}
+
+void transplantar(struct nodo** raiz, struct nodo* nodo, struct nodo* nodo_filho) {
+    if (nodo->pai == SENTINELA) {
+        *raiz = nodo_filho;
+    } else if (nodo == nodo->pai->esq) {
+        nodo->pai->esq = nodo_filho;
+    } else {
+        nodo->pai->dir = nodo_filho;
+    }
+    nodo_filho->pai = nodo->pai;
+}
+
 // retorna o número de nodos excluídos
 int excluir(struct nodo** raiz, int chave) {
+    struct nodo* nodo = buscar(*raiz, chave);
+    if (nodo == SENTINELA) {
+        return 0;
+    }
 
+    struct nodo* nodo_filho = NULL;
+    enum cor cor_do_nodo = nodo->cor;
+
+    if (nodo->esq == SENTINELA) {
+        nodo_filho = nodo->dir;
+        transplantar(raiz, nodo, nodo->dir);
+    } else if (nodo->dir == SENTINELA) {
+        nodo_filho = nodo->esq;
+        transplantar(raiz, nodo, nodo->esq);
+    } else {
+        struct nodo* sucessor = buscarSucessor(nodo->dir);
+        cor_do_nodo = sucessor->cor;
+        nodo_filho = sucessor->dir;
+        if (sucessor->pai == nodo) {
+            nodo_filho->pai = sucessor;
+        } else {
+            transplantar(raiz, sucessor, sucessor->dir);
+            sucessor->dir = nodo->dir;
+            sucessor->dir->pai = sucessor;
+        }
+        transplantar(raiz, nodo, sucessor);
+        sucessor->esq = nodo->esq;
+        sucessor->esq->pai = sucessor;
+        sucessor->cor = nodo->cor;
+    }
+    free(nodo);
+
+    if (cor_do_nodo == PRETO) {
+        excluirFixup(raiz, nodo_filho);
+    }
+
+    return 1;
 }
 
 //retorna SENTINELA se não existe
 struct nodo* buscar(struct nodo* raiz, int chave) {
+    struct nodo* nodo = raiz;
 
+    while (nodo != SENTINELA) {
+        if (chave > nodo->chave) {
+            nodo = nodo->dir;
+        } else if (chave < nodo->chave) {
+            nodo = nodo->esq;
+        } else {
+            break;
+        }
+    }
+
+    return nodo;
 }
 
 void imprimirEmOrdem(struct nodo* nodo) {
@@ -127,20 +191,54 @@ void imprimirEmLargura(struct nodo* raiz) {
 
     struct fila* fila = criarFila();
     struct nodo* nodo = NULL;
+    unsigned int nivel = 0;
 
     enfileirar(&fila, raiz);
 
     while (fila->inicio != NULL) {
-        nodo = desenfileirar(&fila);
 
-        printf("%i\t", nodo->chave);
-        if (nodo->esq != SENTINELA) {
-            enfileirar(&fila, nodo->esq);
+        unsigned int tamanho_nivel = fila->tamanho;
+
+        printf("[%u] ", nivel);
+
+        for (unsigned int i = 0; i < tamanho_nivel; i++) {
+            nodo = desenfileirar(&fila);
+
+            if (nodo->cor == PRETO) {
+                printf("(B)");
+            } else {
+                printf("(R)");
+            }
+
+            printf("%i ", nodo->chave);
+
+            if (nodo->pai != SENTINELA) {
+                printf("[%i", nodo->pai->chave);
+                if (nodo == nodo->pai->esq) {
+                    printf("e]\t");
+                } else {
+                    printf("d]\t");
+                }
+            } else {
+                // Eu imagino que esse QUALQUER é um placeholder,
+                // Mas vou imprimir dessa forma para seguir a
+                // documentação do trabalho.
+                printf("[QUALQUER]\t");
+            }
+
+            if (nodo->esq != SENTINELA) {
+                enfileirar(&fila, nodo->esq);
+            }
+            if (nodo->dir != SENTINELA) {
+                enfileirar(&fila, nodo->dir);
+            }
         }
-        if (nodo->dir != SENTINELA) {
-            enfileirar(&fila, nodo->dir);
-        }
+
+        nivel++;
+        printf("\n");
     }
+
+    free(fila);
 }
 
 struct fila* criarFila() {
@@ -151,6 +249,7 @@ struct fila* criarFila() {
 
     fila->inicio = NULL;
     fila->fim = NULL;
+    fila->tamanho = 0;
 
     return fila;
 }
@@ -171,6 +270,7 @@ void enfileirar(struct fila** fila, struct nodo* nodo) {
         (*fila)->inicio = novo_fila_nodo;
         (*fila)->fim = novo_fila_nodo;
     }
+    (*fila)->tamanho++;
 }
 
 struct nodo* desenfileirar(struct fila** fila) {
@@ -185,6 +285,8 @@ struct nodo* desenfileirar(struct fila** fila) {
     } else {
         return NULL;
     }
+
+    (*fila)->tamanho--;
 
     nodo = inicio_fila_nodo->nodo;
     free(inicio_fila_nodo);
@@ -207,7 +309,7 @@ struct nodo* criarNodo(int chave) {
     return novo_nodo;
 }
 
-void insertFixup(struct nodo** raiz, struct nodo* novo_nodo) {
+void inserirFixup(struct nodo** raiz, struct nodo* novo_nodo) {
     while (novo_nodo != *raiz && novo_nodo->pai->cor == VERMELHO) {
         struct nodo* avo = novo_nodo->pai->pai;
 
@@ -248,6 +350,61 @@ void insertFixup(struct nodo** raiz, struct nodo* novo_nodo) {
         }
     }
     (*raiz)->cor = PRETO;
+}
+
+void excluirFixup(struct nodo** raiz, struct nodo* nodo) {
+    while (nodo != *raiz && nodo->cor == PRETO) {
+        if (nodo == nodo->pai->esq) {
+            struct nodo* irmao = nodo->pai->dir;
+            if (irmao->cor == VERMELHO) {
+                irmao->cor = PRETO;
+                nodo->pai->cor = VERMELHO;
+                rotacaoEsquerda(raiz, nodo->pai);
+                irmao = nodo->pai->dir;
+            }
+            if (irmao->esq->cor == PRETO && irmao->dir->cor == PRETO) {
+                irmao->cor = VERMELHO;
+                nodo = nodo->pai;
+            } else {
+                if (irmao->dir->cor == PRETO) {
+                    irmao->esq->cor = PRETO;
+                    irmao->cor = VERMELHO;
+                    rotacaoDireita(raiz, irmao);
+                    irmao = nodo->pai->dir;
+                }
+                irmao->cor = nodo->pai->cor;
+                nodo->pai->cor = PRETO;
+                irmao->dir->cor = PRETO;
+                rotacaoEsquerda(raiz, nodo->pai);
+                nodo = *raiz;
+            }
+        } else {
+            struct nodo* irmao = nodo->pai->esq;
+            if (irmao->cor == VERMELHO) {
+                irmao->cor = PRETO;
+                nodo->pai->cor = VERMELHO;
+                rotacaoDireita(raiz, nodo->pai);
+                irmao = nodo->pai->esq;
+            }
+            if (irmao->dir->cor == PRETO && irmao->esq->cor == PRETO) {
+                irmao->cor = VERMELHO;
+                nodo = nodo->pai;
+            } else {
+                if (irmao->esq->cor == PRETO) {
+                    irmao->dir->cor = PRETO;
+                    irmao->cor = VERMELHO;
+                    rotacaoEsquerda(raiz, irmao);
+                    irmao = nodo->pai->esq;
+                }
+                irmao->cor = nodo->pai->cor;
+                nodo->pai->cor = PRETO;
+                irmao->esq->cor = PRETO;
+                rotacaoDireita(raiz, nodo->pai);
+                nodo = *raiz;
+            }
+        }
+    }
+    nodo->cor = PRETO;
 }
 
 void rotacaoEsquerda(struct nodo** raiz, struct nodo* nodo_pivo) {

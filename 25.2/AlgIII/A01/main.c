@@ -6,7 +6,7 @@
 int main(){
 	//ATENÇÃO, ESSE É APENAS UM EXEMPLO DE IMPLEMENTAÇÃO DO MAIN.
 	//MODIFIQUE DE ACORDO COM SUAS NECESSIDADES E DE ACORDO COM AS ESPECIFICAÇÕES.
-	struct nodo* raiz = NULL;
+	struct nodo* raiz = criarArvore();
 	
 	imprimirDadosAluno();
 
@@ -17,7 +17,7 @@ int main(){
 		switch (op) {
 			case 'i':
 				scanf("%d", &val);
-				if(!inserir(&raiz, val))
+				if(ehSentinela(inserir(&raiz, val)))
 					fprintf(stderr,"Falha ao inserir.\n");
 				break;
 			case 'r':
@@ -30,12 +30,12 @@ int main(){
 				puts("\n");
 				break;
 			case 'l':
-				imprimirEmLargura(raiz, true);
+				imprimirEmLargura(raiz);
 				break;
 			case 'b':
 			 	scanf("%d", &val);
 				struct nodo* valB = buscar(raiz, val);
-				if(valB != &SENTINELA)
+				if(!ehSentinela(valB))
 					printf("Encontrado %d\n", valB->chave);
 				else
 					printf("Nao encontrado %d.\n", val);
