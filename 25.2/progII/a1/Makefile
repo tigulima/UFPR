@@ -16,5 +16,5 @@ util.o: util.c util.h
 	$(CC) $(CFLAGS) -c util.c
 
 clean:
-	rm -f *.o gbv
+	rm -f *.o *.gbv gbv
 

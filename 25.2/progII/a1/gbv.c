@@ -377,16 +377,41 @@ int gbv_order(Library *lib, const char *archive, const char *criteria) {
     return 0;
 }
 
-char* gbv_derivacao(Library *lib, const char *archive) {
-    // apaga .gbv do archive
+int gbv_derivacao(Library *lib, const char *archive, const char *docname) {
+
+    // Aborta se archive não existe
+    FILE *archive_fp = fopen(archive, "rb");
+    if (archive_fp == NULL) {
+        perror("gbv_derivacao: Não foi possível abrir o arquivo");
+        return -1;
+    }
+    fclose(archive_fp);
+    
+    // Cria o nome do novo arquivo_z.gbv
     char *base_name = strndup(archive, strlen(archive) - 4);
     char *archive_z = strncat(strdup(base_name), "_z.gbv", 10);
 
-
+    // Cria a nova biblioteca
     if (gbv_create(archive_z) != 0) {
         perror("gbv_add: Erro ao criar a nova biblioteca");
-        return NULL;
+        return -1;
     }
-    
-    return archive_z;
+
+    char* docs = strdup(docname);
+
+    // separa os documentos por ' '
+    char *token = strtok(docs, " ");
+    while (token != NULL) {
+        // Adiciona o documento atual à nova biblioteca
+        if (gbv_add(lib, archive_z, token) != 0) {
+            perror("gbv_derivacao: Erro ao adicionar documento à nova biblioteca");
+            free(base_name);
+            free(archive_z);
+            free(docs);
+            return -1;
+        }
+        token = strtok(NULL, " ");
+    }
+
+    return 0;
 }

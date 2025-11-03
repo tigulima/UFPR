@@ -33,14 +33,7 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(opcao, "-o") == 0 && argc >= 4) {
         gbv_order(&lib, biblioteca, argv[3]);
     } else if (strcmp(opcao, "-z") == 0 && argc >= 4) {
-        const char *biblioteca_z = gbv_derivacao(&lib, biblioteca);
-        if (biblioteca_z == NULL) {
-            printf("Erro ao criar biblioteca de derivação.\n");
-            return 1;
-        }
-        for (int i = 3; i < argc; i++) {
-            gbv_add(&lib, biblioteca_z, argv[i]);
-        }
+        gbv_derivacao(&lib, biblioteca, argv[3]);
     } else {
         printf("Opção inválida.\n");
     }
