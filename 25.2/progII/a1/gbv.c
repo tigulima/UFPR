@@ -38,8 +38,16 @@ int gbv_create(const char *filename) {
 int gbv_open(Library *lib, const char *filename) {
     FILE *fp = fopen(filename, "rb");
     if (fp == NULL) {
-        perror("gbv_open: Arquivo não encontrado ou não pode ser aberto");
-        return -1;
+        printf("Biblioteca %s não encontrada. Criando nova biblioteca.\n", filename);
+        if (gbv_create(filename) != 0) {
+            perror("gbv_add: Erro ao criar a nova biblioteca");
+            return -1;
+        }
+        fp = fopen(filename, "r+b");
+        if (fp == NULL) {
+            perror("gbv_add: Erro ao abrir a nova biblioteca");
+            return -1;
+        }
     }
 
     // Carrega o Superbloco para a RAM
@@ -77,9 +85,9 @@ int gbv_add(Library *lib, const char *archive, const char *docname) {
     Superblock sb;
 
     // Abrindo o arquivo que vamos ler e o arquivo que vamos escrever
-    FILE *archive_fp = fopen(archive, "r + b");
+    FILE *archive_fp = fopen(archive, "r+b");
     if (archive_fp == NULL) {
-        perror("gbv_add: Erro ao reabrir a biblioteca");
+        perror("gbv_add: Não foi possível abrir o arquivo");
         return -1;
     }
 
@@ -367,4 +375,18 @@ int gbv_order(Library *lib, const char *archive, const char *criteria) {
 
     printf("Biblioteca ordenada por %s.\n", criterio_nome);
     return 0;
+}
+
+char* gbv_derivacao(Library *lib, const char *archive) {
+    // apaga .gbv do archive
+    char *base_name = strndup(archive, strlen(archive) - 4);
+    char *archive_z = strncat(strdup(base_name), "_z.gbv", 10);
+
+
+    if (gbv_create(archive_z) != 0) {
+        perror("gbv_add: Erro ao criar a nova biblioteca");
+        return NULL;
+    }
+    
+    return archive_z;
 }
