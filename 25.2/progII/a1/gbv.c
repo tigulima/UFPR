@@ -401,6 +401,29 @@ int gbv_derivacao(Library *lib, const char *archive, const char *docname) {
 
     // separa os documentos por ' '
     char *token = strtok(docs, " ");
+
+    // Verifica se os documentos existem na biblioteca original
+    while (token != NULL) {
+        int found = 0;
+        for (int i = 0; i < lib->count; i++) {
+            if (strcmp(lib->docs[i].name, token) == 0) {
+                found = 1;
+                break;
+            }
+        }
+        if (found == 0) {
+            printf("Documento '%s' não encontrado na biblioteca original.\n", token);
+            free(base_name);
+            free(archive_z);
+            free(docs);
+            return -1;
+        }
+        token = strtok(NULL, " ");
+    }
+
+    // Reseta o token para o início da lista de documentos
+    token = strtok(docs, " ");
+
     while (token != NULL) {
         // Adiciona o documento atual à nova biblioteca
         if (gbv_add(lib, archive_z, token) != 0) {
