@@ -1,0 +1,21 @@
+Documentação A1
+
+Nome: Thiago Imai Lima
+GRR: 20204397
+
+Descrição: "Arquivo .txt de até 1000 caracteres com explicações das modificações realizadas para implementar a nova funcionalidade."
+
+Para a implementação da feature de derivação foi necessário criar uma nova função:
+
+int gbv_derivacao(Library *lib, const char *archive, const char *docname)
+
+Onde ele retorna 0 se bem sucedido, -1 em caso de erro
+
+1. O primeiro passo consistem em abrir o arquivo somente para ver se ele existe e é valido
+2. O segundo passo é criar uma nova biblioteca com o nome correto, que acabou de ser calculado
+3. Verifica se o documento existe na biblioteca original
+4. Adiciona o documento na biblioteca copiada
+
+
+Inicialmente a parte de adição de novos documentos era feita na main, repetindo a lógica de adição do próprio gbv_add,
+mas isso foi alterado para simplificação, onde a adição passou a acontecer dentro da função de derivação.
