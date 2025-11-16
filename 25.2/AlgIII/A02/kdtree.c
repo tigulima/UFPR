@@ -102,6 +102,95 @@ struct nodo* buscar(struct kdtree *arvore, float *ponto) {
     return buscarRecursivo(arvore->raiz, ponto, arvore->k, 0);
 }
 
+// IMPRESSÃO EM LARGURA
+
+static struct fila* criarFila() {
+    struct fila *fila = (struct fila *)malloc(sizeof(struct fila));
+    if (fila == NULL) {
+        matarProgramaFaltaMemoria();
+    }
+    fila->inicio = NULL;
+    fila->fim = NULL;
+    return fila;
+}
+
+static void enfileirar(struct fila *fila, struct nodo *nodo) {
+    struct elem_fila *novo = (struct elem_fila *)malloc(sizeof(struct elem_fila));
+    if (novo == NULL) {
+        matarProgramaFaltaMemoria();
+    }
+    novo->nodo = nodo;
+    novo->prox = NULL;
+    
+    if (fila->fim == NULL) {
+        fila->inicio = novo;
+        fila->fim = novo;
+    } else {
+        fila->fim->prox = novo;
+        fila->fim = novo;
+    }
+}
+
+static struct nodo* desenfileirar(struct fila *fila) {
+    if (fila->inicio == NULL) {
+        return NULL;
+    }
+    
+    struct elem_fila *temp = fila->inicio;
+    struct nodo *nodo = temp->nodo;
+    fila->inicio = temp->prox;
+    
+    if (fila->inicio == NULL) {
+        fila->fim = NULL;
+    }
+    
+    free(temp);
+    return nodo;
+}
+
+static int filaVazia(struct fila *fila) {
+    return fila->inicio == NULL;
+}
+
+static void destruirFila(struct fila *fila) {
+    while (!filaVazia(fila)) {
+        desenfileirar(fila);
+    }
+    free(fila);
+}
+
+void imprimirEmLargura(struct kdtree *arvore) {
+    if (arvore->raiz == NULL) {
+        printf("Árvore vazia.\n");
+        return;
+    }
+    
+    struct fila *fila = criarFila();
+    enfileirar(fila, arvore->raiz);
+    
+    while (!filaVazia(fila)) {
+        struct nodo *atual = desenfileirar(fila);
+        
+        // Imprime o ponto
+        printf("(");
+        for (unsigned int i = 0; i < arvore->k; i++) {
+            printf("%.1f%s", atual->ponto[i], (i == arvore->k - 1) ? "" : ", ");
+        }
+        printf(") classe %d\n", atual->classe);
+        
+        // Enfileira os filhos
+        if (atual->esq != NULL) {
+            enfileirar(fila, atual->esq);
+        }
+        if (atual->dir != NULL) {
+            enfileirar(fila, atual->dir);
+        }
+    }
+    
+    destruirFila(fila);
+}
+
+
 // ZPONTOS
 
 static float calcularDistancia(float *p1, float *p2, unsigned int k) {

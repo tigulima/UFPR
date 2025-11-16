@@ -74,6 +74,11 @@ int main() {
                     free(ponto);
                     break;
                 }
+            case 'l':
+                {
+                    imprimirEmLargura(arvore);
+                    break;
+                }
             case 'z':
                 {
                     unsigned int z;
