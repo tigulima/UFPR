@@ -1,142 +1,117 @@
+#include "kdtree.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include "kdtree.h"
 
-/**
- * @brief Função de erro (copiada de kdtree.c para consistência).
- * Imprime erro em stderr e finaliza o programa com código 1.
- */
-// void matarProgramaFaltaMemoria() {
-//     fprintf(stderr, "Falha ao alocar memoria.\n");
-//     exit(1);
-// }
-
-/**
- * @brief Calcula a distância Euclidiana entre dois pontos de dimensão k.
- * (Necessário para a impressão da saída de 'zVizinhos').
- */
-static float calcularDistancia(float *p1, float *p2, int k) {
-    float soma = 0.0;
-    for (int i = 0; i < k; i++) {
-        float diff = p1[i] - p2[i];
-        soma += diff * diff;
-    }
-    return sqrt(soma);
+static void matarProgramaErroLeitura() {
+    fprintf(stderr, "Erro na leitura dos dados.");
+    exit(1);
 }
 
-/**
- * @brief Lê um ponto (vetor de k floats) da stdin para um buffer.
- * Retorna 1 em sucesso, 0 em falha.
- */
-static int lerPonto(float *buffer, int k) {
-    for (int i = 0; i < k; i++) {
-        if (scanf("%f", &buffer[i]) != 1) {
-            fprintf(stderr, "Erro ao ler vetor de ponto.\n");
-            return 0; // Falha
+static void lerPontos(unsigned int K, float *ponto) {
+    for (unsigned int j = 0; j < K; j++) {
+        if (scanf("%f", &ponto[j]) != 1) {
+            free(ponto);
+            matarProgramaErroLeitura();
         }
     }
-    return 1; // Sucesso
 }
 
+static void carregarPontosNaArvore(struct kdtree *arvore, unsigned int N, unsigned int K) {
+    for (unsigned int i = 0; i < N; i++) {
+        float *ponto = (float *)malloc(K * sizeof(float));
+        if (ponto == NULL) {
+            matarProgramaFaltaMemoria();
+        }
+        lerPontos(K, ponto);
+        int classe;
+        if (scanf("%d", &classe) != 1) {
+            free(ponto);
+            matarProgramaErroLeitura();
+        }
+
+        inserir(arvore, ponto, classe);
+        free(ponto);
+    }
+}
 
 int main() {
-    
-    // --- 1. Fase de Criação ---
-    // A própria criarKdtree() lida com os prompts "Insira N e K."
-    // e "Insira os pontos." [cite: 54, 56]
-    struct kdtree *arvore = criarKdtree();
-    
-    // Imprime a confirmação após a leitura dos N pontos [cite: 60]
-    printf("Árvore Construída.\n");
+    unsigned int n, k;
 
-    // Guarda o 'k' para uso no loop principal
-    int k = arvore->k;
-    
-    // Buffer reutilizável para ler pontos da stdin
-    float *ponto_buffer = (float *)malloc(k * sizeof(float));
-    if (ponto_buffer == NULL) {
-        matarProgramaFaltaMemoria();
+    printf("Insira N e K.\n");
+    if (scanf("%u %u", &n, &k) != 2) {
+        matarProgramaErroLeitura();
+    }
+    if (k == 0 || n == 0) {
+        matarProgramaErroLeitura();
     }
 
-    char comando[16];
+    struct kdtree *arvore = criarArvore(k);
 
-    // --- 2. Fase de Interação ---
-    // Loop principal de comandos [cite: 44]
-    while (scanf("%15s", comando) == 1) {
+    printf("Insira os pontos.\n");
+    carregarPontosNaArvore(arvore, n, k);
+    printf("Árvore construída.\n");
 
-        // Comando: f (finalizar) [cite: 48]
-        if (strcmp(comando, "f") == 0) {
-            break; // Sai do loop
-        }
-
-        // Comando: b (buscar) [cite: 45]
-        else if (strcmp(comando, "b") == 0) {
-            if (lerPonto(ponto_buffer, k)) {
-                struct kd_nodo* resultado = buscar(arvore, ponto_buffer);
-                if (resultado != NULL) {
-                    printf("Encontrado. Classe %d.\n", resultado->classe); // [cite: 62]
-                } else {
-                    printf("Não encontrado.\n"); // [cite: 64]
-                }
-            }
-        }
-
-        // Comando: l (imprimir em largura) [cite: 46]
-        else if (strcmp(comando, "l") == 0) {
-            imprimirEmLargura(arvore);
-        }
-
-        // Comando: z (z-vizinhos) [cite: 47]
-        else if (strcmp(comando, "z") == 0) {
-            int num_vizinhos = 0;
-            if (scanf("%d", &num_vizinhos) != 1) {
-                fprintf(stderr, "Erro ao ler numero de vizinhos.\n");
-                continue;
-            }
-
-            if (lerPonto(ponto_buffer, k)) {
-                int num_encontrados = 0;
-                
-                // Usando a API ajustada
-                struct kd_nodo **vizinhos = zVizinhos(arvore, ponto_buffer, num_vizinhos, &num_encontrados);
-
-                printf("Vizinhos mais próximos:\n"); // [cite: 66]
-                
-                // Itera nos resultados e imprime no formato exato do PDF [cite: 67-69]
-                for (int i = 0; i < num_encontrados; i++) {
-                    struct kd_nodo *v = vizinhos[i];
-                    
-                    // Imprime o ponto (ex: 4.9, 2.4, 3.3, 1.0)
-                    for (int d = 0; d < k; d++) {
-                        // O PDF usa 1 casa decimal para o ponto
-                        printf("%.1f%s", v->ponto[d], (d == k - 1) ? "" : ", ");
+    char op;
+    scanf(" %c", &op);
+    while (op != 'f') {
+        switch (op) {
+            case 'b':
+                {
+                    float *ponto = (float *)malloc(k * sizeof(float));
+                    if (ponto == NULL) {
+                        matarProgramaFaltaMemoria();
                     }
-                    
-                    // Calcula a distância para impressão
-                    float dist = calcularDistancia(v->ponto, ponto_buffer, k);
-                    
-                    // Imprime classe e distância (ex: (classe 1), dist=0.1414)
-                    // O PDF usa 4 casas decimais para a distância
-                    printf(" (classe %d), dist=%.4f\n", v->classe, dist);
+                    lerPontos(k, ponto);
+
+                    struct nodo *resultado = buscar(arvore, ponto);
+
+                    if (resultado != NULL) {
+                        printf("Encontrado. Classe %d.\n", resultado->classe);
+                    } else {
+                        printf("Não encontrado.\n");
+                    }
+
+                    free(ponto);
+                    break;
                 }
-                
-                // IMPORTANTE: zVizinhos alocou o vetor 'vizinhos', o main deve liberá-lo
-                free(vizinhos);
-            }
+            case 'z':
+                {
+                    unsigned int z;
+                    if (scanf("%u", &z) != 1) {
+                        matarProgramaErroLeitura();
+                    }
+
+                    float *ponto = (float *)malloc(k * sizeof(float));
+                    if (ponto == NULL) {
+                        matarProgramaFaltaMemoria();
+                    }
+                    lerPontos(k, ponto);
+
+                    struct lista_vizinhos *vizinhos = zVizinhos(arvore, ponto, z);
+
+                    printf("Vizinhos mais próximos:\n");
+                    for (int i = 0; i < vizinhos->tam; i++) {
+                        struct nodo *v = vizinhos->candidatos[i].nodo;
+                        
+                        for (int j = 0; j < k; j++) {
+                            printf("%.1f%s", v->ponto[j], (j == k - 1) ? "" : ", ");
+                        }
+                        printf(" (classe %d), dist = %.4f\n", v->classe, vizinhos->candidatos[i].dist);
+                    }
+
+                    free(vizinhos->candidatos);
+                    free(vizinhos);
+                    free(ponto);
+                    break;
+                }
+            default:
+                printf("Operação inválida.\n");
+                break;
         }
-        
-        // Comando desconhecido
-        else {
-            fprintf(stderr, "Comando desconhecido: %s\n", comando);
-        }
+        scanf(" %c", &op);
     }
 
-    // --- 3. Fase de Limpeza ---
-    // Libera toda a memória alocada antes de sair
-    free(ponto_buffer);
-    liberarKdtree(arvore);
-
+    destruirArvore(arvore);
     return 0;
 }
+

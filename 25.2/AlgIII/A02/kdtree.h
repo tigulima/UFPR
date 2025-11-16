@@ -1,26 +1,37 @@
 #ifndef KDTREE_H
 #define KDTREE_H
 
-#include <stdlib.h>
-#include <stdio.h>
-
-struct kd_nodo {
+struct nodo {
     float *ponto;
     int classe;
-    struct kd_nodo *esq;
-    struct kd_nodo *dir;
+    struct nodo *esq;
+    struct nodo *dir;
 };
 
 struct kdtree {
-    struct kd_nodo *raiz;
-    int k;
+    struct nodo *raiz;
+    unsigned int k;
 };
 
-struct kdtree* criarKdtree();
-struct kd_nodo* buscar(struct kdtree *arvore, float *ponto);
-struct kd_nodo** zVizinhos(struct kdtree *arvore, float *ponto, int z, int *num_encontrados);
+// Estruturas auxiliares para busca de k-vizinhos mais próximos
+struct candidato {
+    struct nodo *nodo;
+    float dist;
+};
+
+struct lista_vizinhos {
+    struct candidato *candidatos;
+    unsigned int z;
+    unsigned int tam;
+    float *ponto_alvo;
+};
+
 void matarProgramaFaltaMemoria();
-void imprimirEmLargura(struct kdtree *arvore);
-void liberarKdtree(struct kdtree *arvore);
+struct kdtree* criarArvore(unsigned int k);
+struct nodo* criarNodo(float *ponto, int classe, unsigned int k);
+struct kdtree* inserir(struct kdtree *arvore, float *ponto, int classe);
+struct nodo* buscar(struct kdtree *arvore, float *ponto);
+struct lista_vizinhos* zVizinhos(struct kdtree *arvore, float *ponto, unsigned int z);
+void destruirArvore(struct kdtree *arvore);
 
 #endif // KDTREE_H
