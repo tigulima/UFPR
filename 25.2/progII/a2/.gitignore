@@ -1,0 +1,27 @@
+# Arquivos compilados
+*.o
+*.out
+*.exe
+
+# Diretórios de build
+bin/
+obj/
+
+# Arquivos do macOS
+.DS_Store
+._*
+
+# Arquivos do editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+.clangd
+.cache/
+compile_commands.json
+
+# Arquivos temporários
+*.tmp
+*.log
+
