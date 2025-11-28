@@ -8,7 +8,7 @@
 #define PLAYER_SPEED 3.0f
 #define PLAYER_JUMP_FORCE -8.0f
 #define GRAVITY 0.4f
-#define GROUND_LEVEL 520.0f
+#define GROUND_LEVEL 350.0f
 
 // Debug: mostrar hitbox (mude para true para visualizar)
 #define SHOW_HITBOX true

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <allegro5/allegro_primitives.h>
 
-#define GROUND_LEVEL 520.0f
+#define GROUND_LEVEL 330.0f
 
 // Inicializa a fase
 Level* level_init(void) {
@@ -17,19 +17,22 @@ Level* level_init(void) {
     level->background = NULL;
     level->completed = false;
     
-    // TODO: Carregar background aqui
-    // level->background = al_load_bitmap("assets/backgrounds/level1.png");
+    // Carrega background
+    level->background = al_load_bitmap("assets/backgrounds/level1.png");
+    if (!level->background) {
+        fprintf(stderr, "AVISO: Falha ao carregar background level1.png\n");
+    }
     
     // Inicializa lista de obstáculos
     level->obstacles = obstacles_list_init();
     
     // Adiciona obstáculos de exemplo na fase (posições ajustadas para GROUND_LEVEL=520)
-    obstacle_add(level->obstacles, 300, 500, 40, 20, OBSTACLE_STATIC, 10);    // Espinho estático
-    obstacle_add(level->obstacles, 600, 500, 40, 20, OBSTACLE_MOVING, 15);    // Obstáculo móvel
-    obstacle_add(level->obstacles, 900, 500, 40, 20, OBSTACLE_STATIC, 10);    // Buraco/armadilha
-    obstacle_add(level->obstacles, 1200, 500, 40, 20, OBSTACLE_MOVING, 20);   // Animal em movimento
-    obstacle_add(level->obstacles, 1500, 500, 40, 20, OBSTACLE_STATIC, 10);   // Espinho
-    obstacle_add(level->obstacles, 2100, 500, 40, 20, OBSTACLE_MOVING, 15);   // Tronco rolando
+    obstacle_add(level->obstacles, 300, 330, 40, 20, OBSTACLE_STATIC, 10);    // Espinho estático
+    obstacle_add(level->obstacles, 600, 330, 40, 20, OBSTACLE_MOVING, 15);    // Obstáculo móvel
+    obstacle_add(level->obstacles, 900, 330, 40, 20, OBSTACLE_STATIC, 10);    // Buraco/armadilha
+    obstacle_add(level->obstacles, 1200, 330, 40, 20, OBSTACLE_MOVING, 20);   // Animal em movimento
+    obstacle_add(level->obstacles, 1500, 330, 40, 20, OBSTACLE_STATIC, 10);   // Espinho
+    obstacle_add(level->obstacles, 2100, 330, 40, 20, OBSTACLE_MOVING, 15);   // Tronco rolando
     
     return level;
 }
@@ -72,9 +75,28 @@ void level_update(Level *level, Player *player) {
 void level_render(Level *level, float camera_x) {
     // Desenha background
     if (level->background) {
-        // TODO: Implementar rolling background
-        // Por enquanto, desenha o background em posição fixa
-        al_draw_bitmap(level->background, -camera_x, 0, 0);
+        // Desenha o background considerando a posição da câmera
+        // Para efeito de paralaxe simples, podemos mover o background mais devagar que a câmera
+        // mas aqui vamos desenhar fixo em relação ao mundo (rolling background padrão)
+        
+        // Se o background for menor que a fase, pode ser necessário repetir ou esticar
+        // Vamos assumir que o background cobre toda a fase ou desenhar repetido
+        
+        float bg_width = al_get_bitmap_width(level->background);
+        float bg_x = -camera_x;
+        
+        // Desenha o background
+        // Se quiser paralaxe: float bg_x = -(camera_x * 0.5); // Move a 50% da velocidade
+        
+        al_draw_bitmap(level->background, bg_x, 0, 0);
+        
+        // Se o background for menor que a tela/fase e precisarmos repetir:
+        if (bg_width < level->level_width) {
+             while (bg_x + bg_width < SCREEN_WIDTH) {
+                 bg_x += bg_width;
+                 al_draw_bitmap(level->background, bg_x, 0, 0);
+             }
+        }
     } else {
         // Background placeholder (céu azul e chão)
         al_draw_filled_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, al_map_rgb(135, 206, 235));
