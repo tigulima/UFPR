@@ -1,6 +1,7 @@
 #include "../include/obstacles.h"
 #include "../include/utils.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <allegro5/allegro_primitives.h>
 
 // Debug: mostrar hitbox dos obstáculos
