@@ -5,18 +5,15 @@
 #include "obstacles.h"
 #include <allegro5/allegro.h>
 
-// Estrutura da fase
 typedef struct {
-    float camera_x;          // Posição da câmera para rolling background
-    float level_width;       // Largura total da fase
-    float level_height;      // Altura da fase
-    ALLEGRO_BITMAP *background; // Background da fase
-    ObstacleList *obstacles; // Lista de obstáculos
-    bool completed;          // Fase completada?
-    // TODO: Adicionar mais elementos conforme necessário (plataformas, itens coletáveis, etc)
+    float camera_x;
+    float level_width;  
+    float level_height;
+    ALLEGRO_BITMAP *background;
+    ObstacleList *obstacles;
+    bool completed;
 } Level;
 
-// Funções da fase
 Level* level_init(void);
 void level_cleanup(Level *level);
 void level_update(Level *level, Player *player);

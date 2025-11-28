@@ -47,10 +47,6 @@ bool init_allegro(void) {
         return false;
     }
     
-    // TODO: Inicializar addon de áudio para funcionalidade extra [10]
-    // if (!al_install_audio()) { ... }
-    // if (!al_init_acodec_addon()) { ... }
-    
     return true;
 }
 

@@ -4,8 +4,7 @@
 #include <stdio.h>
 #include <allegro5/allegro_primitives.h>
 
-// Debug: mostrar hitbox dos obstáculos
-#define SHOW_OBSTACLE_HITBOX true
+#define SHOW_OBSTACLE_HITBOX false
 
 // Inicializa lista de obstáculos
 ObstacleList* obstacles_list_init(void) {
@@ -97,10 +96,6 @@ void obstacle_add(ObstacleList *list, float x, float y, float width, float heigh
                 }
             }
             break;
-        case OBSTACLE_PLATFORM:
-            obstacle->vx = 0;
-            obstacle->vy = 1.5f;  // Move verticalmente
-            break;
         default:
             obstacle->vx = 0;
             obstacle->vy = 0;
@@ -152,9 +147,6 @@ void obstacles_update(ObstacleList *list) {
                     // Obstáculos estáticos não se movem
                     break;
             }
-            
-            // TODO: Funcionalidade extra [2]: Implementar segundo tipo de obstáculo dinâmico
-            // Exemplo: plataformas que caem/desmoronam quando o jogador pisa
         }
         
         current = current->next;
@@ -174,7 +166,6 @@ void obstacles_render(ObstacleList *list, float camera_x) {
                 ALLEGRO_BITMAP *sprite = current->sprites_moving[current->frame_current];
                 
                 // Se o sprite existir, desenha ele
-                // Assume que a hitbox e o sprite tem tamanhos compatíveis ou ajusta o offset
                 // Centraliza o sprite na hitbox
                 float sprite_w = al_get_bitmap_width(sprite);
                 float sprite_h = al_get_bitmap_height(sprite);
@@ -208,9 +199,6 @@ void obstacles_render(ObstacleList *list, float camera_x) {
                     case OBSTACLE_MOVING:
                         color = al_map_rgb(255, 100, 0);  // Laranja para móveis
                         break;
-                    case OBSTACLE_PLATFORM:
-                        color = al_map_rgb(100, 100, 100);  // Cinza para plataformas
-                        break;
                     default:
                         color = al_map_rgb(255, 255, 255);
                 }
@@ -234,7 +222,7 @@ void obstacles_render(ObstacleList *list, float camera_x) {
     }
 }
 
-// Verifica colisão entre obstáculo e retângulo (jogador)
+// Verifica colisão entre obstáculo e jogador
 bool obstacle_check_collision(Obstacle *obstacle, float x, float y, float width, float height) {
     if (!obstacle || !obstacle->active) return false;
     

@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Variáveis globais do jogo (podem ser movidas para a estrutura Game se preferir)
+// Variáveis globais do jogo
 Menu *menu = NULL;
 Player *player = NULL;
 Level *level = NULL;
@@ -172,7 +172,6 @@ void game_update(Game *game) {
         case STATE_GAME_OVER:
         case STATE_VICTORY:
         case STATE_EXIT:
-            // Não há lógica para atualizar
             break;
     }
 }
@@ -191,7 +190,7 @@ void game_render(Game *game) {
                 level_render(level, level->camera_x);
                 player_render(player, level->camera_x);
                 
-                // Renderiza HUD (vida do jogador)
+                // Renderiza a vida do jogador
                 al_draw_textf(game->font, al_map_rgb(255, 255, 255), 10, 10, 0, 
                              "Vida: %d/%d", player->health, player->max_health);
             }

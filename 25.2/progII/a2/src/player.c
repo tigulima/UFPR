@@ -1,17 +1,14 @@
 #include "../include/player.h"
-#include "../include/game.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <allegro5/allegro_primitives.h>
 
-// Constantes do jogador (ajustadas para sprite 32x32)
 #define PLAYER_SPEED 3.0f
 #define PLAYER_JUMP_FORCE -8.0f
 #define GRAVITY 0.4f
 #define GROUND_LEVEL 350.0f
 
-// Debug: mostrar hitbox (mude para true para visualizar)
-#define SHOW_HITBOX true
+#define SHOW_HITBOX false
 
 // Inicializa o jogador
 Player* player_init(float x, float y) {
@@ -23,7 +20,6 @@ Player* player_init(float x, float y) {
     player->vx = 0;
     player->vy = 0;
     
-    // Hitbox fixa para colisão (10x20, centralizada no sprite 32x32)
     player->width = 12;
     player->height = 24;
     
@@ -34,6 +30,10 @@ Player* player_init(float x, float y) {
     player->facing_right = true;
     player->walk_frame = 0;
     player->walk_frame_counter = 0;
+    
+    player->jump_count = 0;
+    player->max_jumps = 2;
+    player->can_jump = true;
     
     // Carrega sprite idle
     player->sprite_idle = al_load_bitmap("assets/sprites/player/player_idle.png");
@@ -48,11 +48,6 @@ Player* player_init(float x, float y) {
         // Calcula dimensões do sprite
         player->sprite_width = al_get_bitmap_width(player->sprite_idle);
         player->sprite_height = al_get_bitmap_height(player->sprite_idle);
-        
-        // Debug: mostra dimensões
-        printf("Sprite: %.0fx%.0f | Hitbox: %.0fx%.0f\n", 
-               player->sprite_width, player->sprite_height,
-               player->width, player->height);
         
         // Calcula offset para centralizar hitbox no sprite
         player->sprite_offset_x = (player->sprite_width - player->width) / 2.0f;
@@ -81,8 +76,6 @@ Player* player_init(float x, float y) {
         fprintf(stderr, "AVISO: Falha ao carregar sprite player_fall.png\n");
     }
     
-    // TODO: Carregar outros sprites (crouch, swing)
-    
     return player;
 }
 
@@ -109,8 +102,6 @@ void player_cleanup(Player *player) {
             al_destroy_bitmap(player->sprite_fall);
         }
         
-        // TODO: Destruir outros sprites quando forem adicionados
-        
         free(player);
     }
 }
@@ -126,7 +117,7 @@ void player_update(Player *player) {
     player->x += player->vx;
     player->y += player->vy;
     
-    // Verifica colisão com o chão (simplificado)
+    // Verifica colisão com o chão
     if (player->y + player->height >= GROUND_LEVEL) {
         player->y = GROUND_LEVEL - player->height;
         player->vy = 0;
@@ -135,14 +126,15 @@ void player_update(Player *player) {
         if (player->state == PLAYER_JUMPING) {
             player->state = PLAYER_IDLE;
         }
+        
+        // Reseta contador de pulos quando toca o chão
+        player->jump_count = 0;
     } else {
         player->on_ground = false;
     }
     
     // Limita movimento horizontal na tela
     if (player->x < 0) player->x = 0;
-    // Restrição de largura removida daqui para ser tratada no nível
-
     
     // Atualiza estado baseado em movimento
     if (player->on_ground && player->vx != 0) {
@@ -154,13 +146,9 @@ void player_update(Player *player) {
             player->walk_frame = (player->walk_frame + 1) % 10;
             player->walk_frame_counter = 0;
         }
-    } else if (player->on_ground && player->vx == 0 && player->state != PLAYER_CROUCHING) {
-        player->state = PLAYER_IDLE;
-        player->walk_frame = 0;
-        player->walk_frame_counter = 0;
     }
     
-    // Reduz velocidade horizontal (fricção)
+    // Reduz velocidade horizontal
     player->vx *= 0.85f;
     if (player->vx > -0.1f && player->vx < 0.1f) {
         player->vx = 0;
@@ -188,14 +176,6 @@ void player_render(Player *player, float camera_x) {
                 current_sprite = player->sprite_fall; // Caindo
             }
             if (!current_sprite) current_sprite = player->sprite_idle; // Fallback
-            break;
-        case PLAYER_CROUCHING:
-            // TODO: Usar sprite agachado quando disponível
-            current_sprite = player->sprite_idle;
-            break;
-        case PLAYER_SWINGING:
-            // TODO: Usar sprite de balanço quando disponível
-            current_sprite = player->sprite_idle;
             break;
     }
     
@@ -230,12 +210,6 @@ void player_render(Player *player, float camera_x) {
             case PLAYER_JUMPING:
                 color = al_map_rgb(255, 200, 0);
                 break;
-            case PLAYER_CROUCHING:
-                color = al_map_rgb(255, 0, 255);
-                break;
-            case PLAYER_SWINGING:
-                color = al_map_rgb(200, 0, 200);
-                break;
             default:
                 color = al_map_rgb(255, 255, 255);
         }
@@ -266,55 +240,37 @@ void player_handle_input(Player *player, ALLEGRO_KEYBOARD_STATE *key_state) {
     }
     
     // Pulo
-    if (al_key_down(key_state, ALLEGRO_KEY_SPACE) || al_key_down(key_state, ALLEGRO_KEY_W)) {
-        player_jump(player);
-    }
+    bool jump_key_pressed = al_key_down(key_state, ALLEGRO_KEY_SPACE) || al_key_down(key_state, ALLEGRO_KEY_W);
     
-    // Agachar
-    if (al_key_down(key_state, ALLEGRO_KEY_DOWN) || al_key_down(key_state, ALLEGRO_KEY_S)) {
-        player_crouch(player);
-    } else if (player->state == PLAYER_CROUCHING) {
-        player->state = PLAYER_IDLE;
+    if (jump_key_pressed) {
+        if (player->can_jump) {
+            player_jump(player);
+            player->can_jump = false; // Evita spam, requer que solte a tecla
+        }
+    } else {
+        player->can_jump = true; // Reseta flag quando tecla é solta
     }
-    
-    // TODO: Implementar ação de interação/desvio (ex: balanço em cipó)
-    // Funcionalidade extra [1]: Mecânica de Balanço
 }
 
 // Move o jogador para a esquerda
 void player_move_left(Player *player) {
-    if (player->state != PLAYER_CROUCHING) {
-        player->vx = -PLAYER_SPEED;
-        player->facing_right = false;
-    }
+    player->vx = -PLAYER_SPEED;
+    player->facing_right = false;
 }
 
 // Move o jogador para a direita
 void player_move_right(Player *player) {
-    if (player->state != PLAYER_CROUCHING) {
-        player->vx = PLAYER_SPEED;
-        player->facing_right = true;
-    }
+    player->vx = PLAYER_SPEED;
+    player->facing_right = true;
 }
 
 // Faz o jogador pular
 void player_jump(Player *player) {
-    if (player->on_ground && player->state != PLAYER_CROUCHING) {
+    if (player->jump_count < player->max_jumps) {
         player->vy = PLAYER_JUMP_FORCE;
         player->state = PLAYER_JUMPING;
         player->on_ground = false;
-        
-        // TODO: Funcionalidade extra [12]: Pulo duplo
-    }
-}
-
-// Faz o jogador agachar
-void player_crouch(Player *player) {
-    if (player->on_ground) {
-        player->state = PLAYER_CROUCHING;
-        player->vx = 0;
-        
-        // TODO: Funcionalidade extra [4]: Rastejar (movimentar-se abaixado)
+        player->jump_count++;
     }
 }
 
@@ -324,8 +280,6 @@ void player_take_damage(Player *player, int damage) {
     if (player->health < 0) {
         player->health = 0;
     }
-    
-    // TODO: Adicionar efeito visual de dano (flash, invulnerabilidade temporária)
 }
 
 // Verifica se o jogador está vivo

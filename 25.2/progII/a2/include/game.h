@@ -8,12 +8,10 @@
 #include <allegro5/allegro_ttf.h>
 #include <stdbool.h>
 
-// Constantes do jogo
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
 #define FPS 60
 
-// Estados do jogo
 typedef enum {
     STATE_MENU,
     STATE_PLAYING,
@@ -22,7 +20,6 @@ typedef enum {
     STATE_EXIT
 } GameState;
 
-// Estrutura principal do jogo
 typedef struct {
     ALLEGRO_DISPLAY *display;
     ALLEGRO_EVENT_QUEUE *event_queue;
@@ -33,7 +30,6 @@ typedef struct {
     bool redraw;
 } Game;
 
-// Funções principais do jogo
 Game* game_init(void);
 void game_run(Game *game);
 void game_cleanup(Game *game);
