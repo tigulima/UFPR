@@ -36,7 +36,7 @@ Player* player_init(float x, float y) {
     player->walk_frame_counter = 0;
     
     // Carrega sprite idle
-    player->sprite_idle = al_load_bitmap("assets/sprites/player_idle.png");
+    player->sprite_idle = al_load_bitmap("assets/sprites/player/player_idle.png");
     if (!player->sprite_idle) {
         fprintf(stderr, "AVISO: Falha ao carregar sprite player_idle.png\n");
         // Usa dimensões da hitbox como fallback
@@ -62,7 +62,7 @@ Player* player_init(float x, float y) {
     // Carrega sprites de caminhada
     char walk_filename[64];
     for (int i = 0; i < 10; i++) {
-        snprintf(walk_filename, sizeof(walk_filename), "assets/sprites/player_walk_%d.png", i);
+        snprintf(walk_filename, sizeof(walk_filename), "assets/sprites/player/player_walk_%d.png", i);
         player->sprite_walk[i] = al_load_bitmap(walk_filename);
         if (!player->sprite_walk[i]) {
             fprintf(stderr, "AVISO: Falha ao carregar %s\n", walk_filename);
@@ -70,13 +70,13 @@ Player* player_init(float x, float y) {
     }
     
     // Carrega sprite de pulo
-    player->sprite_jump = al_load_bitmap("assets/sprites/player_jump.png");
+    player->sprite_jump = al_load_bitmap("assets/sprites/player/player_jump.png");
     if (!player->sprite_jump) {
         fprintf(stderr, "AVISO: Falha ao carregar sprite player_jump.png\n");
     }
     
     // Carrega sprite de queda
-    player->sprite_fall = al_load_bitmap("assets/sprites/player_fall.png");
+    player->sprite_fall = al_load_bitmap("assets/sprites/player/player_fall.png");
     if (!player->sprite_fall) {
         fprintf(stderr, "AVISO: Falha ao carregar sprite player_fall.png\n");
     }

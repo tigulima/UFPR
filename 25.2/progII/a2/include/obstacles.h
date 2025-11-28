@@ -19,7 +19,13 @@ typedef struct Obstacle {
     int damage;              // Dano causado ao jogador
     ObstacleType type;       // Tipo do obstáculo
     bool active;             // Obstáculo está ativo?
-    // TODO: Adicionar ALLEGRO_BITMAP* sprite para cada obstáculo
+    
+    // Sprites e animação
+    ALLEGRO_BITMAP *sprites_moving[8]; // Array para os sprites de animação (0-7)
+    ALLEGRO_BITMAP *sprites_static[8]; // Array para os sprites estáticos animados (0-7)
+    int frame_current;                 // Frame atual da animação
+    int frame_counter;                 // Contador para controle de velocidade da animação
+    
     struct Obstacle *next;   // Próximo obstáculo na lista
 } Obstacle;
 

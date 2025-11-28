@@ -24,13 +24,12 @@ Level* level_init(void) {
     level->obstacles = obstacles_list_init();
     
     // Adiciona obstáculos de exemplo na fase (posições ajustadas para GROUND_LEVEL=520)
-    obstacle_add(level->obstacles, 300, 500, 50, 20, OBSTACLE_STATIC, 10);    // Espinho estático
-    obstacle_add(level->obstacles, 600, 490, 60, 30, OBSTACLE_MOVING, 15);    // Obstáculo móvel
-    obstacle_add(level->obstacles, 900, 490, 50, 30, OBSTACLE_STATIC, 10);    // Buraco/armadilha
-    obstacle_add(level->obstacles, 1200, 480, 80, 40, OBSTACLE_MOVING, 20);   // Animal em movimento
-    obstacle_add(level->obstacles, 1500, 500, 50, 20, OBSTACLE_STATIC, 10);   // Espinho
-    obstacle_add(level->obstacles, 1800, 400, 100, 20, OBSTACLE_PLATFORM, 0); // Plataforma móvel (no ar)
-    obstacle_add(level->obstacles, 2100, 490, 60, 30, OBSTACLE_MOVING, 15);   // Tronco rolando
+    obstacle_add(level->obstacles, 300, 500, 40, 20, OBSTACLE_STATIC, 10);    // Espinho estático
+    obstacle_add(level->obstacles, 600, 500, 40, 20, OBSTACLE_MOVING, 15);    // Obstáculo móvel
+    obstacle_add(level->obstacles, 900, 500, 40, 20, OBSTACLE_STATIC, 10);    // Buraco/armadilha
+    obstacle_add(level->obstacles, 1200, 500, 40, 20, OBSTACLE_MOVING, 20);   // Animal em movimento
+    obstacle_add(level->obstacles, 1500, 500, 40, 20, OBSTACLE_STATIC, 10);   // Espinho
+    obstacle_add(level->obstacles, 2100, 500, 40, 20, OBSTACLE_MOVING, 15);   // Tronco rolando
     
     return level;
 }
