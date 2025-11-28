@@ -2,6 +2,7 @@
 #include "../include/game.h"
 #include "../include/utils.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <allegro5/allegro_primitives.h>
 
 #define GROUND_LEVEL 330.0f
