@@ -189,7 +189,7 @@ void game_render(Game *game) {
         case STATE_PLAYING:
             if (level && player) {
                 level_render(level, level->camera_x);
-                player_render(player);
+                player_render(player, level->camera_x);
                 
                 // Renderiza HUD (vida do jogador)
                 al_draw_textf(game->font, al_map_rgb(255, 255, 255), 10, 10, 0, 

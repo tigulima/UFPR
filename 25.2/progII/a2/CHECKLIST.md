@@ -40,7 +40,7 @@
 
 ### Sprites do Personagem (Crítico)
 - ✅ Sprite em pé (idle) - IMPLEMENTADO
-- ❌ Sprites andando (walk animation)
+- ✅ Sprites andando (walk animation)
 - ❌ Sprite pulando (jump)
 - ❌ Sprite abaixado (crouch)
 - ❌ Sprite de interação/desvio (swing/climb)

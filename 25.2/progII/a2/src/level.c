@@ -52,6 +52,12 @@ void level_cleanup(Level *level) {
 
 // Atualiza a fase
 void level_update(Level *level, Player *player) {
+    // Limita o jogador aos limites da fase
+    if (player->x < 0) player->x = 0;
+    if (player->x + player->width > level->level_width) {
+        player->x = level->level_width - player->width;
+    }
+
     // Atualiza obstáculos
     obstacles_update(level->obstacles);
     

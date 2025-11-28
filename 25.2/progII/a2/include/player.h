@@ -42,7 +42,7 @@ typedef struct {
 Player* player_init(float x, float y);
 void player_cleanup(Player *player);
 void player_update(Player *player);
-void player_render(Player *player);
+void player_render(Player *player, float camera_x);
 void player_handle_input(Player *player, ALLEGRO_KEYBOARD_STATE *key_state);
 void player_take_damage(Player *player, int damage);
 bool player_is_alive(Player *player);

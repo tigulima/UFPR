@@ -141,9 +141,8 @@ void player_update(Player *player) {
     
     // Limita movimento horizontal na tela
     if (player->x < 0) player->x = 0;
-    if (player->x + player->width > SCREEN_WIDTH) {
-        player->x = SCREEN_WIDTH - player->width;
-    }
+    // Restrição de largura removida daqui para ser tratada no nível
+
     
     // Atualiza estado baseado em movimento
     if (player->on_ground && player->vx != 0) {
@@ -169,7 +168,7 @@ void player_update(Player *player) {
 }
 
 // Renderiza o jogador
-void player_render(Player *player) {
+void player_render(Player *player, float camera_x) {
     // Seleciona sprite baseado no estado
     ALLEGRO_BITMAP *current_sprite = NULL;
     
@@ -203,7 +202,7 @@ void player_render(Player *player) {
     // Renderiza sprite se disponível
     if (current_sprite) {
         // Calcula centro da hitbox
-        float center_x = player->x + player->width / 2.0f;
+        float center_x = (player->x - camera_x) + player->width / 2.0f;
         float center_y = player->y + player->height / 2.0f;
         
         // Posição do sprite centralizado na hitbox
@@ -212,11 +211,8 @@ void player_render(Player *player) {
         
         // Se está olhando para a esquerda, espelha o sprite
         if (!player->facing_right) {
-            // Com FLIP_HORIZONTAL, x é a borda direita do sprite
-            // Sprite vai de (x - width) até (x)
-            // Para centralizar: x = center_x + sprite_width/2
-            float flip_x = center_x + player->sprite_width / 2.0f;
-            al_draw_bitmap(current_sprite, flip_x, sprite_y, ALLEGRO_FLIP_HORIZONTAL);
+            // Com FLIP_HORIZONTAL, o sprite é espelhado mas a posição x,y continua sendo o canto superior esquerdo
+            al_draw_bitmap(current_sprite, sprite_x, sprite_y, ALLEGRO_FLIP_HORIZONTAL);
         } else {
             // Normal: x é a borda esquerda
             al_draw_bitmap(current_sprite, sprite_x, sprite_y, 0);
@@ -244,16 +240,16 @@ void player_render(Player *player) {
                 color = al_map_rgb(255, 255, 255);
         }
         
-        al_draw_filled_rectangle(player->x, player->y, 
-                                player->x + player->width, 
+        al_draw_filled_rectangle(player->x - camera_x, player->y, 
+                                player->x - camera_x + player->width, 
                                 player->y + player->height, 
                                 color);
     }
     
     // Debug: desenha hitbox para visualização (se habilitado)
     if (SHOW_HITBOX && current_sprite) {
-        al_draw_rectangle(player->x, player->y, 
-                         player->x + player->width, 
+        al_draw_rectangle(player->x - camera_x, player->y, 
+                         player->x - camera_x + player->width, 
                          player->y + player->height, 
                          al_map_rgba(255, 0, 0, 180), 2.0f);
     }
