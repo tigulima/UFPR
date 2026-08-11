@@ -6,30 +6,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Variáveis globais do jogo
 Menu *menu = NULL;
 Player *player = NULL;
 Level *level = NULL;
 
-// Inicializa o jogo e todos os componentes do Allegro
 Game* game_init(void) {
     Game *game = (Game*)malloc(sizeof(Game));
     if (!game) return NULL;
     
-    // Inicializa Allegro
     if (!init_allegro()) {
         free(game);
         return NULL;
     }
     
-    // Cria display
     game->display = create_display(SCREEN_WIDTH, SCREEN_HEIGHT);
     if (!game->display) {
         free(game);
         return NULL;
     }
     
-    // Cria timer
     game->timer = create_timer(1.0 / FPS);
     if (!game->timer) {
         al_destroy_display(game->display);
@@ -37,7 +32,6 @@ Game* game_init(void) {
         return NULL;
     }
     
-    // Cria fila de eventos
     game->event_queue = create_event_queue();
     if (!game->event_queue) {
         al_destroy_timer(game->timer);
@@ -46,7 +40,6 @@ Game* game_init(void) {
         return NULL;
     }
     
-    // Carrega fonte
     game->font = al_create_builtin_font();
     if (!game->font) {
         al_destroy_event_queue(game->event_queue);
@@ -56,38 +49,31 @@ Game* game_init(void) {
         return NULL;
     }
     
-    // Registra fontes de eventos
     al_register_event_source(game->event_queue, al_get_display_event_source(game->display));
     al_register_event_source(game->event_queue, al_get_timer_event_source(game->timer));
     al_register_event_source(game->event_queue, al_get_keyboard_event_source());
     
-    // Estado inicial
     game->state = STATE_MENU;
     game->running = true;
-    game->redraw = false;
+    game->redraw = false; // Para evitar renderização excessiva
     
-    // Inicializa menu
     menu = menu_init(game->font);
     
-    // Inicia o timer
     al_start_timer(game->timer);
     
     return game;
 }
 
-// Loop principal do jogo
 void game_run(Game *game) {
     ALLEGRO_EVENT event;
     
     while (game->running) {
         al_wait_for_event(game->event_queue, &event);
         
-        // Processa eventos
         if (!game_handle_events(game, &event)) {
             continue;
         }
         
-        // Atualiza lógica do jogo
         if (game->redraw && al_is_event_queue_empty(game->event_queue)) {
             game->redraw = false;
             game_update(game);
@@ -96,7 +82,6 @@ void game_run(Game *game) {
     }
 }
 
-// Processa eventos do jogo
 bool game_handle_events(Game *game, ALLEGRO_EVENT *event) {
     if (event->type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
         game->running = false;
@@ -107,7 +92,6 @@ bool game_handle_events(Game *game, ALLEGRO_EVENT *event) {
         game->redraw = true;
     }
     
-    // Processa input baseado no estado atual
     switch (game->state) {
         case STATE_MENU:
             menu_handle_input(menu, event, game);
@@ -139,11 +123,9 @@ bool game_handle_events(Game *game, ALLEGRO_EVENT *event) {
     return true;
 }
 
-// Atualiza a lógica do jogo
 void game_update(Game *game) {
     switch (game->state) {
         case STATE_MENU:
-            // Menu não precisa de update
             break;
             
         case STATE_PLAYING:
@@ -151,16 +133,16 @@ void game_update(Game *game) {
                 ALLEGRO_KEYBOARD_STATE key_state;
                 al_get_keyboard_state(&key_state);
                 
-                // Atualiza jogador
+                // Atualizar jogador
                 player_handle_input(player, &key_state);
                 player_update(player);
                 
-                // Atualiza fase
+                // Atualizar fase
                 level_update(level, player);
                 level_check_collisions(level, player);
                 level_update_camera(level, player);
                 
-                // Verifica condições de vitória/derrota
+                // Verificar condições de vitória/derrota
                 if (!player_is_alive(player)) {
                     game->state = STATE_GAME_OVER;
                 } else if (level->completed) {

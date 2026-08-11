@@ -166,16 +166,16 @@ void player_render(Player *player, float camera_x) {
             break;
         case PLAYER_WALKING:
             current_sprite = player->sprite_walk[player->walk_frame];
-            if (!current_sprite) current_sprite = player->sprite_idle; // Fallback
+            if (!current_sprite) current_sprite = player->sprite_idle;
             break;
         case PLAYER_JUMPING:
             // Usa sprite diferente se está subindo ou caindo
             if (player->vy < 0) {
-                current_sprite = player->sprite_jump; // Subindo
+                current_sprite = player->sprite_jump;
             } else {
-                current_sprite = player->sprite_fall; // Caindo
+                current_sprite = player->sprite_fall;
             }
-            if (!current_sprite) current_sprite = player->sprite_idle; // Fallback
+            if (!current_sprite) current_sprite = player->sprite_idle;
             break;
     }
     
