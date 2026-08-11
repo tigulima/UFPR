@@ -6,7 +6,6 @@
 
 #define GROUND_LEVEL 330.0f
 
-// Inicializa a fase
 Level* level_init(void) {
     Level *level = (Level*)malloc(sizeof(Level));
     if (!level) return NULL;
@@ -17,27 +16,23 @@ Level* level_init(void) {
     level->background = NULL;
     level->completed = false;
     
-    // Carrega background
     level->background = al_load_bitmap("assets/backgrounds/level1.png");
     if (!level->background) {
         fprintf(stderr, "AVISO: Falha ao carregar background level1.png\n");
     }
     
-    // Inicializa lista de obstáculos
     level->obstacles = obstacles_list_init();
     
-    // Adiciona obstáculos de exemplo na fase
-    obstacle_add(level->obstacles, 300, 330, 40, 20, OBSTACLE_STATIC, 10);    // Espinho estático
-    obstacle_add(level->obstacles, 600, 330, 40, 20, OBSTACLE_MOVING, 15);    // Obstáculo móvel
-    obstacle_add(level->obstacles, 900, 330, 40, 20, OBSTACLE_STATIC, 10);    // Buraco/armadilha
-    obstacle_add(level->obstacles, 1200, 330, 40, 20, OBSTACLE_MOVING, 20);   // Animal em movimento
-    obstacle_add(level->obstacles, 1500, 330, 40, 20, OBSTACLE_STATIC, 10);   // Espinho
-    obstacle_add(level->obstacles, 2100, 330, 40, 20, OBSTACLE_MOVING, 15);   // Tronco rolando
+    obstacle_add(level->obstacles, 300, 330, 40, 20, OBSTACLE_STATIC, 10);
+    obstacle_add(level->obstacles, 600, 330, 40, 20, OBSTACLE_MOVING, 15);
+    obstacle_add(level->obstacles, 900, 330, 40, 20, OBSTACLE_STATIC, 10);
+    obstacle_add(level->obstacles, 1200, 330, 40, 20, OBSTACLE_MOVING, 20);
+    obstacle_add(level->obstacles, 1500, 330, 40, 20, OBSTACLE_STATIC, 10);
+    obstacle_add(level->obstacles, 2100, 330, 40, 20, OBSTACLE_MOVING, 15);
     
     return level;
 }
 
-// Limpa recursos da fase
 void level_cleanup(Level *level) {
     if (!level) return;
     
@@ -52,7 +47,6 @@ void level_cleanup(Level *level) {
     free(level);
 }
 
-// Atualiza a fase
 void level_update(Level *level, Player *player) {
     // Limita o jogador aos limites da fase
     if (player->x < 0) player->x = 0;
@@ -60,7 +54,6 @@ void level_update(Level *level, Player *player) {
         player->x = level->level_width - player->width;
     }
 
-    // Atualiza obstáculos
     obstacles_update(level->obstacles);
     
     // Verifica se o jogador chegou ao final da fase
@@ -71,14 +64,12 @@ void level_update(Level *level, Player *player) {
 
 // Renderiza a fase
 void level_render(Level *level, float camera_x) {
-    // Desenha background
     if (level->background) {
         // Desenha o background considerando a posição da câmera
         
         float bg_width = al_get_bitmap_width(level->background);
         float bg_x = -camera_x;
         
-        // Desenha o background
         al_draw_bitmap(level->background, bg_x, 0, 0);
     } else {
         // Background placeholder
